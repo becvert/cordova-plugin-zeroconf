@@ -1,0 +1,39 @@
+{
+	"name" : "cordova-plugin-zeroconf", 
+	"version" : "1.0.0", 
+	"description" : "Cordova ZeroConf plugin", 
+	"cordova" : {
+		"id" : "cordova-plugin-zeroconf", 
+		"platforms" : [
+			"android", 
+			"ios"
+		]
+	}, 
+	"repository" : {
+		"type" : "git", 
+		"url" : "git+https://github.com/becvert/cordova-plugin-zeroconf.git"
+	}, 
+	"keywords" : [
+		"ecosystem:cordova", 
+		"cordova-android", 
+		"cordova-ios", 
+		"cordova", 
+		"plugin", 
+		"network", 
+		"zeroconf", 
+		"service", 
+		"discovery"
+	], 
+	"engines" : [
+		{
+			"name" : "cordova", 
+			"version" : ">=3.0.0"
+		}
+	], 
+	"author" : "Sylvain Brejeon", 
+	"license" : "MIT", 
+	"bugs" : {
+		"url" : "https://github.com/becvert/cordova-plugin-zeroconf/issues"
+	}, 
+	"homepage" : "https://github.com/becvert/cordova-plugin-zeroconf"
+}

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="cordova-plugin-zeroconf"
+    version="1.0.0">
+    <name>ZeroConf</name>
+    <description>ZeroConf plugin for Cordova/Phonegap</description>
+    <author>Sylvain Brejeon</author>
+    <keywords>cordova,plugin,network,zeroconf,service,discovery</keywords>
+    <license>MIT</license>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <js-module src="www/zeroconf.js" name="ZeroConf">
+        <clobbers target="cordova.plugins.zeroconf" />
+    </js-module>
+
+    <platform name="android">
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+        </config-file>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="ZeroConf">
+                <param name="android-package" value="net.becvert.cordova.ZeroConf" />
+            </feature>
+        </config-file>
+        <source-file src="src/android/libs/jmdns.jar" target-dir="libs" framework="true" />
+        <source-file src="src/android/net/becvert/cordova/ZeroConf.java" target-dir="src/net/becvert/cordova" />
+    </platform>
+
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="ZeroConf">
+                <param name="ios-package" value="ZeroConf"/>
+            </feature>
+        </config-file>
+        <header-file src="src/ios/ZeroConf-Bridging-Header.h" />
+        <source-file src="src/ios/ZeroConf.swift" />
+    </platform>
+
+</plugin>
