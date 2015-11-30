@@ -2,11 +2,11 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-zeroconf"
-    version="1.0.0">
+    version="1.0.1">
     <name>ZeroConf</name>
     <description>ZeroConf plugin for Cordova/Phonegap</description>
     <author>Sylvain Brejeon</author>
-    <keywords>cordova,plugin,network,zeroconf,service,discovery</keywords>
+    <keywords>cordova,plugin,network,zeroconf,bonjour,mdns,service,discovery</keywords>
     <license>MIT</license>
 
     <engines>

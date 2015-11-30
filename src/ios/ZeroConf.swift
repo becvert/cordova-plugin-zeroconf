@@ -27,7 +27,7 @@ import Foundation
     func register(command: CDVInvokedUrlCommand) {
         
         let fullType = command.argumentAtIndex(0) as! String
-        let fullTypeArr = fullType.characters.split{$0 == "."}.map(String.init)
+        let fullTypeArr = fullType.componentsSeparatedByString(".")
         let domain = fullTypeArr[2]
         let type = fullTypeArr[0] + "." + fullTypeArr[1]
         let name = command.argumentAtIndex(1) as! String

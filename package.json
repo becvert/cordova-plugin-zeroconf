@@ -1,6 +1,6 @@
 {
 	"name" : "cordova-plugin-zeroconf", 
-	"version" : "1.0.0", 
+	"version" : "1.0.1", 
 	"description" : "Cordova ZeroConf plugin", 
 	"cordova" : {
 		"id" : "cordova-plugin-zeroconf", 
@@ -21,6 +21,8 @@
 		"plugin", 
 		"network", 
 		"zeroconf", 
+		"bonjour", 
+		"mdns", 
 		"service", 
 		"discovery"
 	], 

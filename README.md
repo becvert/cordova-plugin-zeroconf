@@ -12,6 +12,20 @@ In your application project directory:
 cordova plugin add cordova-plugin-zeroconf
 ```
 
+#### iOS
+It's written in Swift, not objective-c.
+
+In the build settings of your project:
+
+```Embedded Content Contains Swift Code: YES```
+
+```Objective-C Bridging Header: YOUR_PROJECT/PATH_TO/YOUR_PROJECT-Bridging-Header.h```
+Insert the content of the ZeroConf-Bridging-Header.h file in it.
+
+```Other swift flags: -D DEBUG``` optional. for debugging purpose.
+
+```Run path Search Paths: @executable_path/Frameworks```
+
 ## Usage ##
 
 ```javascript
@@ -70,31 +84,12 @@ Closes the service browser and stops watching.
 zeroconf.close()
 ```
 
-## Contribution
-
-#### Android
-Project is set up for Eclipse
-
-#### iOS
-It's written in Swift, not objective-c.
-
-In the build settings of your project:
-
-```Embedded Content Contains Swift Code: YES```
-
-```Objective-C Bridging Header: YOUR_PROJECT/PATH_TO/YOUR_PROJECT-Bridging-Header.h```
-Insert the content of the ZeroConf-Bridging-Header.h file in it.
-
-```Other swift flags: -D DEBUG``` optional. for debugging purpose.
-
-```Run path Search Paths: @executable_path/Frameworks```
-
 ## Credits
 
 #### Android
 It depends on [the JmDNS library](http://jmdns.sourceforge.net/). Bundles [the jmdns.jar](https://github.com/twitwi/AndroidDnssdDemo/) library.
 
-Thanks to https://github.com/cambiocreative/cordova-plugin-zeroconf that got me started
+Many thanks to [cambiocreative](https://github.com/cambiocreative/cordova-plugin-zeroconf) that got me started
 
 #### iOS
 See https://developer.apple.com/bonjour/
