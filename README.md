@@ -19,12 +19,12 @@ In the build settings of your project:
 
 ```Embedded Content Contains Swift Code: YES```
 
-```Objective-C Bridging Header: YOUR_PROJECT/PATH_TO/YOUR_PROJECT-Bridging-Header.h```
+```Objective-C Bridging Header: YOUR_PROJECT/Bridging-Header.h```
 Insert the content of the ZeroConf-Bridging-Header.h file in it.
 
-```Other swift flags: -D DEBUG``` optional. for debugging purpose.
+```Runpath Search Paths: @executable_path/Frameworks```
 
-```Run path Search Paths: @executable_path/Frameworks```
+```Other swift flags: -D DEBUG``` optional. for debugging purpose.
 
 ## Usage ##
 
