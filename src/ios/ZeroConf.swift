@@ -12,6 +12,11 @@ import Foundation
     private var publishers: [String: Publisher] = [:]
     private var browsers: [String: Browser] = [:]
     
+    override func pluginInitialize() {
+        publishers  = [:]
+        browsers = [:]
+    }
+    
     override func onAppTerminate() {
         for (_, publisher) in publishers {
             publisher.destroy()
@@ -38,9 +43,10 @@ import Foundation
         #endif
         
         var txtRecord: [String: NSData] = [:]
-        let dict = command.arguments[3] as! [String: String]
-        for (key, value) in dict {
-            txtRecord[key] = value.dataUsingEncoding(NSUTF8StringEncoding)
+        if let dict = command.arguments[3] as? [String: String] {
+            for (key, value) in dict {
+                txtRecord[key] = value.dataUsingEncoding(NSUTF8StringEncoding)
+            }
         }
         
         let publisher = Publisher(withDomain: domain, withType: type, withName: name, withPort: port, withTxtRecord: txtRecord)
