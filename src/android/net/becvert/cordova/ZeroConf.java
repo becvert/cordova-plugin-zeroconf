@@ -247,6 +247,10 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
     }
 
     private void unregister(String type, String name) {
+        if (publisher == null) {
+            return;
+        }
+
         ServiceInfo serviceInfo = publisher.getServiceInfo(type, name);
         if (serviceInfo != null) {
             publisher.unregisterService(serviceInfo);
@@ -273,7 +277,9 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
     }
 
     private void unwatch(String type) {
-        browser.removeServiceListener(type, this);
+        if (browser != null) {
+            browser.removeServiceListener(type, this);
+        }
     }
 
     @Override
