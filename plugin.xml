@@ -28,8 +28,9 @@
                 <param name="android-package" value="net.becvert.cordova.ZeroConf" />
             </feature>
         </config-file>
-        <source-file src="src/android/libs/jmdns.jar" target-dir="libs" framework="true" />
         <source-file src="src/android/net/becvert/cordova/ZeroConf.java" target-dir="src/net/becvert/cordova" />
+        <source-file src="src/android/libs/jmdns-3.5.0.jar" target-dir="libs" />
+        <framework src="org.slf4j:slf4j-android:1.7+" />
     </platform>
 
     <platform name="ios">
