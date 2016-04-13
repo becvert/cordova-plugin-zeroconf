@@ -9,8 +9,8 @@ import Foundation
 
 @objc(ZeroConf) class ZeroConf : CDVPlugin  {
     
-    private var publishers: [String: Publisher] = [:]
-    private var browsers: [String: Browser] = [:]
+    private var publishers: [String: Publisher]!
+    private var browsers: [String: Browser]!
     
     override func pluginInitialize() {
         publishers  = [:]
