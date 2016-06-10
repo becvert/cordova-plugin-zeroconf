@@ -12,20 +12,6 @@ In your application project directory:
 cordova plugin add cordova-plugin-zeroconf
 ```
 
-#### iOS
-It's written in Swift, not objective-c.
-
-In the build settings of your project:
-
-```Embedded Content Contains Swift Code: YES```
-
-```Objective-C Bridging Header: YOUR_PROJECT/Bridging-Header.h```
-Insert the content of the ZeroConf-Bridging-Header.h file in it.
-
-```Runpath Search Paths: @executable_path/Frameworks```
-
-```Other swift flags: -D DEBUG``` optional. for debugging purpose.
-
 ## Usage ##
 
 ```javascript
