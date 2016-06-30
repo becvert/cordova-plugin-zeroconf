@@ -43,6 +43,6 @@
         <source-file src="src/ios/ZeroConf.swift" />
     </platform>
     
-    <dependency id="cordova-plugin-add-swift-support" url="https://github.com/akofman/cordova-plugin-add-swift-support"/>
+    <dependency id="cordova-plugin-add-swift-support"/>
 
 </plugin>
