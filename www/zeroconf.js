@@ -10,27 +10,27 @@ var exec = require('cordova/exec');
 
 var ZeroConf = {
 
-    register : function(type, name, port, props, success, failure) {
-        return exec(success, failure, "ZeroConf", "register", [ type, name, port, props ]);
+    register: function(type, domain, name, port, props, success, failure) {
+        return exec(success, failure, "ZeroConf", "register", [type, name, port, props]);
     },
 
-    unregister : function(type, name, success, failure) {
-        return exec(success, failure, "ZeroConf", "unregister", [ type, name ]);
+    unregister: function(type, domain, name, success, failure) {
+        return exec(success, failure, "ZeroConf", "unregister", [type, name]);
     },
 
-    stop : function(type, name, success, failure) {
+    stop: function(success, failure) {
         return exec(success, failure, "ZeroConf", "stop", []);
     },
 
-    watch : function(type, success, failure) {
-        return exec(success, failure, "ZeroConf", "watch", [ type ]);
+    watch: function(type, domain, success, failure) {
+        return exec(success, failure, "ZeroConf", "watch", [type]);
     },
 
-    unwatch : function(type, success, failure) {
-        return exec(success, failure, "ZeroConf", "unwatch", [ type ]);
+    unwatch: function(type, domain, success, failure) {
+        return exec(success, failure, "ZeroConf", "unwatch", [type]);
     },
 
-    close : function(success, failure) {
+    close: function(success, failure) {
         return exec(success, failure, "ZeroConf", "close", []);
     }
 

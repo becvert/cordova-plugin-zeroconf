@@ -29,8 +29,7 @@
             </feature>
         </config-file>
         <source-file src="src/android/net/becvert/cordova/ZeroConf.java" target-dir="src/net/becvert/cordova" />
-        <source-file src="src/android/libs/jmdns-3.5.0.jar" target-dir="libs" />
-        <framework src="org.slf4j:slf4j-android:1.7+" />
+        <framework src="com.github.andriydruk:rxdnssd:0.8.2" />
     </platform>
 
     <platform name="ios">
@@ -42,7 +41,7 @@
         <header-file src="src/ios/ZeroConf-Bridging-Header.h" />
         <source-file src="src/ios/ZeroConf.swift" />
     </platform>
-    
+
     <dependency id="cordova-plugin-add-swift-support"/>
 
 </plugin>
