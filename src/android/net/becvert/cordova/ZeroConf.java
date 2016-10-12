@@ -295,6 +295,7 @@ public class ZeroConf extends CordovaPlugin {
             obj.put("domain", info.getDomain());
             obj.put("port", info.getPort());
             obj.put("name", info.getServiceName());
+            obj.put("hostname", info.getHostname());
             obj.put("type", info.getRegType());
 
             JSONObject props = new JSONObject();
