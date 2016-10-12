@@ -25,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -83,7 +84,6 @@ public class ZeroConf extends CordovaPlugin {
         this.registerServices.clear();
 
         this.browser.close();
-
         this.callbacks.clear();
     }
 
@@ -123,7 +123,6 @@ public class ZeroConf extends CordovaPlugin {
         } else if (ACTION_STOP.equals(action)) {
 
             Log.d("ZeroConf", "Stop");
-
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -144,10 +143,6 @@ public class ZeroConf extends CordovaPlugin {
                     watch(type, domain, callbackContext);
                 }
             });
-
-            PluginResult result = new PluginResult(Status.NO_RESULT);
-            result.setKeepCallback(true);
-            callbacks.put(type + "@@@" + domain, callbackContext);
         } else if (ACTION_UNWATCH.equals(action)) {
 
             final String type = args.optString(0);
@@ -161,13 +156,9 @@ public class ZeroConf extends CordovaPlugin {
                     unwatch(type, domain);
                 }
             });
-            PluginResult result = new PluginResult(Status.NO_RESULT);
-            result.setKeepCallback(false);
-            callbacks.remove(type + "@@@" + domain);
         } else if (ACTION_CLOSE.equals(action)) {
 
             Log.d("ZeroConf", "Close");
-
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
@@ -185,12 +176,6 @@ public class ZeroConf extends CordovaPlugin {
     }
 
     private void register(String type, String domain, String name, int port, JSONObject props, final CallbackContext callbackContext) {
-        if (domain == null) {
-            domain = "";
-        }
-        if (name == null) {
-            name = "";
-        }
         unregister(type, domain, name);
         HashMap<String, String> txtRecord = new HashMap<String, String>();
         if (props != null) {
@@ -222,6 +207,7 @@ public class ZeroConf extends CordovaPlugin {
 
                     @Override
                     public void onNext(BonjourService bonjourService) {
+                        Log.d("ZeroConf", "Register " + bonjourService);
                         JSONObject status = new JSONObject();
                         try {
                             status.put("action", "register_success");
@@ -253,10 +239,8 @@ public class ZeroConf extends CordovaPlugin {
     }
 
     private void watch(String type, String domain, final CallbackContext callbackContext) {
-        if (domain == null) {
-            domain = "";
-        }
         final String key = type + "@@@" + domain;
+        callbacks.put(key, callbackContext);
         browser.watch(type, domain)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<BonjourService>() {
@@ -271,6 +255,7 @@ public class ZeroConf extends CordovaPlugin {
 
                     @Override
                     public void onNext(BonjourService bonjourService) {
+                        Log.d("ZeroConf", "Watch " + bonjourService);
                         if (!bonjourService.isLost()) {
                             sendCallback("added", key, bonjourService);
                         } else {
@@ -281,9 +266,7 @@ public class ZeroConf extends CordovaPlugin {
     }
 
     private void unwatch(String type, String domain) {
-        if (domain == null) {
-            domain = "";
-        }
+        callbacks.remove(type + "@@@" + domain);
         browser.unwatch(type, domain);
     }
 
@@ -321,13 +304,17 @@ public class ZeroConf extends CordovaPlugin {
             }
             obj.put("txtRecord", props);
 
-            // JSONArray addresses = new JSONArray();
-            // String[] add = info.getHostAddresses();
-            // for (int i = 0; i < add.length; i++) {
-            //     addresses.put(add[i]);
-            // }
-            // obj.put("addresses", addresses);
-            // JSONArray urls = new JSONArray();
+            JSONArray addresses = new JSONArray();
+            InetAddress addV4 = info.getInet4Address();
+            if (addV4 != null) {
+                addresses.put(addV4.getHostAddress());
+            }
+            InetAddress addV6= info.getInet6Address();
+            if (addV6 != null) {
+                addresses.put(addV6.getHostAddress());
+            }
+            obj.put("addresses", addresses);
+            JSONArray urls = new JSONArray();
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -355,7 +342,6 @@ public class ZeroConf extends CordovaPlugin {
                             registrations.put(service, subscriptions[0]);
                         }
                     })
-                    .subscribeOn(AndroidSchedulers.mainThread())
                     .subscribe(subject);
             return subject;
         }
@@ -385,16 +371,12 @@ public class ZeroConf extends CordovaPlugin {
         }
 
         public Observable<BonjourService> watch(String type, String domain) {
-            if (domain == null) {
-                domain = "";
-            }
             unwatch(type, domain);
             PublishSubject<BonjourService> subject = PublishSubject.create();
             Subscription browser = rxDnssd.browse(type, domain)
                     .compose(rxDnssd.resolve())
                     .compose(rxDnssd.queryRecords())
                     .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(subject);
 
             browsers.put(type + "@@@" + domain, browser);
