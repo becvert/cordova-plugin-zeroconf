@@ -8,6 +8,7 @@
 package net.becvert.cordova;
 
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
@@ -21,16 +22,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Collections;
+import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -39,10 +35,12 @@ import javax.jmdns.ServiceListener;
 
 public class ZeroConf extends CordovaPlugin implements ServiceListener {
 
+    private static final String TAG = "ZeroConf";
+
     WifiManager.MulticastLock lock;
-    private JmDNS publisher = null;
-    private JmDNS browser = null;
-    private String hostname = UUID.randomUUID().toString();
+    private JmDNS publisher;
+    private JmDNS browser;
+    private String hostname;
     private Map<String, CallbackContext> callbacks = new HashMap<String, CallbackContext>();
 
     // publisher
@@ -58,12 +56,15 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
 
-        WifiManager wifi = (WifiManager) this.cordova.getActivity().getSystemService(android.content.Context.WIFI_SERVICE);
+        WifiManager wifi = (WifiManager) this.cordova.getActivity()
+                .getSystemService(android.content.Context.WIFI_SERVICE);
         lock = wifi.createMulticastLock("ZeroConfPluginLock");
         lock.setReferenceCounted(true);
         lock.acquire();
 
-        Log.v("ZeroConf", "Initialized");
+        hostname = getHostName("android");
+
+        Log.v(TAG, "Initialized");
     }
 
     @Override
@@ -95,43 +96,61 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
     }
 
     @Override
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
+    public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) {
 
         if (ACTION_REGISTER.equals(action)) {
 
             final String type = args.optString(0);
-            final String name = args.optString(1);
-            final int port = args.optInt(2);
-            final JSONObject props = args.optJSONObject(3);
+            final String domain = args.optString(1);
+            final String name = args.optString(2);
+            final int port = args.optInt(3);
+            final JSONObject props = args.optJSONObject(4);
 
-            Log.d("ZeroConf", "Register " + type);
+            Log.d(TAG, "Register " + type + domain);
 
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
-                    register(type, name, port, props);
+                    try {
+                        ServiceInfo service = register(type, domain, name, port, props);
+
+                        JSONObject status = new JSONObject();
+                        status.put("action", "registered");
+                        status.put("service", jsonifyService(service));
+
+                        Log.d(TAG, "Sending result: " + status.toString());
+
+                        PluginResult result = new PluginResult(PluginResult.Status.OK, status);
+                        callbackContext.sendPluginResult(result);
+
+                    } catch (IOException | JSONException e) {
+                        e.printStackTrace();
+                        callbackContext.error("Registration of " + type + domain + " with name " + name + " failed");
+                    }
                 }
             });
 
         } else if (ACTION_UNREGISTER.equals(action)) {
 
             final String type = args.optString(0);
-            final String name = args.optString(1);
+            final String domain = args.optString(1);
+            final String name = args.optString(2);
 
-            Log.d("ZeroConf", "Unregister " + type);
+            Log.d(TAG, "Unregister " + type + domain);
 
             if (publisher != null) {
                 cordova.getThreadPool().execute(new Runnable() {
                     @Override
                     public void run() {
-                        unregister(type, name);
+                        unregister(type, domain, name);
+                        callbackContext.success("Unregistered " + type + domain + " with name " + name);
                     }
                 });
             }
 
         } else if (ACTION_STOP.equals(action)) {
 
-            Log.d("ZeroConf", "Stop");
+            Log.d(TAG, "Stop");
 
             if (publisher != null) {
                 final JmDNS p = publisher;
@@ -141,8 +160,10 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
                     public void run() {
                         try {
                             p.close();
+                            callbackContext.success("Publisher did stop");
                         } catch (IOException e) {
                             e.printStackTrace();
+                            callbackContext.error("Publisher did not stop properly");
                         }
                     }
                 });
@@ -151,42 +172,50 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
         } else if (ACTION_WATCH.equals(action)) {
 
             final String type = args.optString(0);
+            final String domain = args.optString(1);
 
-            Log.d("ZeroConf", "Watch " + type);
+            Log.d(TAG, "Watch " + type + domain);
 
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
-                    watch(type);
+                    try {
+                        watch(type, domain);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        callbackContext.error("Could not watch " + type + domain);
+                    }
                 }
             });
 
             PluginResult result = new PluginResult(Status.NO_RESULT);
             result.setKeepCallback(true);
-            callbacks.put(type, callbackContext);
+            callbacks.put(type + domain, callbackContext);
 
         } else if (ACTION_UNWATCH.equals(action)) {
 
             final String type = args.optString(0);
+            final String domain = args.optString(1);
 
-            Log.d("ZeroConf", "Unwatch " + type);
+            Log.d(TAG, "Unwatch " + type + domain);
 
             if (browser != null) {
                 cordova.getThreadPool().execute(new Runnable() {
                     @Override
                     public void run() {
-                        unwatch(type);
+                        unwatch(type, domain);
+                        callbackContext.success("Stopped watching " + type + domain);
                     }
                 });
 
                 PluginResult result = new PluginResult(Status.NO_RESULT);
                 result.setKeepCallback(false);
-                callbacks.remove(type);
+                callbacks.remove(type + domain);
             }
 
         } else if (ACTION_CLOSE.equals(action)) {
 
-            Log.d("ZeroConf", "Close");
+            Log.d(TAG, "Close");
 
             if (browser != null) {
                 final JmDNS b = browser;
@@ -196,8 +225,10 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
                     public void run() {
                         try {
                             b.close();
+                            callbackContext.success("Browser did close");
                         } catch (IOException e) {
                             e.printStackTrace();
+                            callbackContext.error("Browser did not close properly");
                         }
                     }
                 });
@@ -206,7 +237,7 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
             }
 
         } else {
-            Log.e("ZeroConf", "Invalid action: " + action);
+            Log.e(TAG, "Invalid action: " + action);
             callbackContext.error("Invalid action: " + action);
             return false;
         }
@@ -214,15 +245,10 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
         return true;
     }
 
-    private void register(String type, String name, int port, JSONObject props) {
+    private ServiceInfo register(String type, String domain, String name, int port, JSONObject props)
+            throws IOException, JSONException {
         if (publisher == null) {
-            try {
-                publisher = JmDNS.create(ZeroConf.getIPAddress(),
-                        /* need a hostname to work! */ hostname);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
+            publisher = JmDNS.create(null, hostname);
         }
 
         HashMap<String, String> txtRecord = new HashMap<String, String>();
@@ -230,75 +256,62 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
             Iterator<String> iter = props.keys();
             while (iter.hasNext()) {
                 String key = iter.next();
-                try {
-                    txtRecord.put(key, props.getString(key));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                txtRecord.put(key, props.getString(key));
             }
         }
 
-        try {
-            ServiceInfo service = ServiceInfo.create(type, name, port, 0, 0, txtRecord);
-            publisher.registerService(service);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ServiceInfo service = ServiceInfo.create(type + domain, name, port, 0, 0, txtRecord);
+        publisher.registerService(service);
+        return service;
     }
 
-    private void unregister(String type, String name) {
+    private void unregister(String type, String domain, String name) {
         if (publisher == null) {
             return;
         }
 
-        ServiceInfo serviceInfo = publisher.getServiceInfo(type, name);
+        ServiceInfo serviceInfo = publisher.getServiceInfo(type + domain, name);
         if (serviceInfo != null) {
             publisher.unregisterService(serviceInfo);
         }
     }
 
-    private void watch(String type) {
+    private void watch(String type, String domain) throws IOException {
         if (browser == null) {
-            try {
-                browser = JmDNS.create(ZeroConf.getIPAddress(),
-                        /* need a hostname to work! */ hostname);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
+            browser = JmDNS.create(null, hostname);
         }
 
-        browser.addServiceListener(type, this);
+        browser.addServiceListener(type + domain, this);
 
-        ServiceInfo[] services = browser.list(type);
+        ServiceInfo[] services = browser.list(type + domain);
         for (ServiceInfo service : services) {
             sendCallback("added", service);
         }
     }
 
-    private void unwatch(String type) {
+    private void unwatch(String type, String domain) {
         if (browser != null) {
-            browser.removeServiceListener(type, this);
+            browser.removeServiceListener(type + domain, this);
         }
     }
 
     @Override
     public void serviceResolved(ServiceEvent ev) {
-        Log.d("ZeroConf", "Resolved");
+        Log.d(TAG, "Resolved");
 
         sendCallback("added", ev.getInfo());
     }
 
     @Override
     public void serviceRemoved(ServiceEvent ev) {
-        Log.d("ZeroConf", "Removed");
+        Log.d(TAG, "Removed");
 
         sendCallback("removed", ev.getInfo());
     }
 
     @Override
     public void serviceAdded(ServiceEvent event) {
-        Log.d("ZeroConf", "Added");
+        Log.d(TAG, "Added");
 
         // Force serviceResolved to be called again
         if (browser != null) {
@@ -306,93 +319,67 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
         }
     }
 
-    public void sendCallback(String action, ServiceInfo info) {
-        if (callbacks == null || callbacks.get(info.getType()) == null) {
+    public void sendCallback(String action, ServiceInfo service) {
+        CallbackContext callbackContext = callbacks.get(service.getType());
+        if (callbackContext == null) {
             return;
         }
 
         JSONObject status = new JSONObject();
         try {
             status.put("action", action);
-            status.put("service", jsonifyService(info));
-            Log.d("ZeroConf", "Sending result: " + status.toString());
-
-            PluginResult result = new PluginResult(PluginResult.Status.OK, status);
-            result.setKeepCallback(true);
-            callbacks.get(info.getType()).sendPluginResult(result);
-
+            status.put("service", jsonifyService(service));
         } catch (JSONException e) {
             e.printStackTrace();
+            callbackContext.error("Error while jsonifying service " + service.getType());
+            return;
         }
 
+        Log.d(TAG, "Sending result: " + status.toString());
+
+        PluginResult result = new PluginResult(PluginResult.Status.OK, status);
+        result.setKeepCallback(true);
+        callbackContext.sendPluginResult(result);
     }
 
-    public static JSONObject jsonifyService(ServiceInfo info) {
+    public static JSONObject jsonifyService(ServiceInfo service) throws JSONException {
         JSONObject obj = new JSONObject();
-        try {
-            obj.put("application", info.getApplication());
-            obj.put("domain", info.getDomain());
-            obj.put("port", info.getPort());
-            obj.put("name", info.getName());
-            obj.put("server", info.getServer());
-            obj.put("description", info.getNiceTextString());
-            obj.put("protocol", info.getProtocol());
-            obj.put("qualifiedname", info.getQualifiedName());
-            obj.put("type", info.getType());
 
-            JSONObject props = new JSONObject();
-            Enumeration<String> names = info.getPropertyNames();
-            while (names.hasMoreElements()) {
-                String name = names.nextElement();
-                props.put(name, info.getPropertyString(name));
-            }
-            obj.put("txtRecord", props);
+        String domain = service.getDomain() + ".";
+        obj.put("domain", domain);
+        obj.put("type", service.getType().replace(domain, ""));
+        obj.put("name", service.getName());
+        obj.put("port", service.getPort());
+        obj.put("hostname", service.getServer());
 
-            JSONArray addresses = new JSONArray();
-            String[] add = info.getHostAddresses();
-            for (int i = 0; i < add.length; i++) {
-                addresses.put(add[i]);
-            }
-            obj.put("addresses", addresses);
-            JSONArray urls = new JSONArray();
-
-            String[] url = info.getURLs();
-            for (int i = 0; i < url.length; i++) {
-                urls.put(url[i]);
-            }
-            obj.put("urls", urls);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
+        JSONArray addresses = new JSONArray();
+        String[] add = service.getHostAddresses();
+        for (int i = 0; i < add.length; i++) {
+            addresses.put(add[i]);
         }
+        obj.put("addresses", addresses);
+        
+        JSONObject props = new JSONObject();
+        Enumeration<String> names = service.getPropertyNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+            props.put(name, service.getPropertyString(name));
+        }
+        obj.put("txtRecord", props);
 
         return obj;
 
     }
 
-    /**
-     * Returns the first found IP4 address.
-     * 
-     * @return the first found IP4 address
-     */
-    public static InetAddress getIPAddress() {
+    // http://stackoverflow.com/questions/21898456/get-android-wifi-net-hostname-from-code
+    public static String getHostName(String defValue) {
         try {
-            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
-            for (NetworkInterface intf : interfaces) {
-                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
-                for (InetAddress addr : addrs) {
-                    if (!addr.isLoopbackAddress()) {
-                        if (addr instanceof Inet4Address) {
-                            return addr;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            Method getString = Build.class.getDeclaredMethod("getString", String.class);
+            getString.setAccessible(true);
+            return getString.invoke(null, "net.hostname").toString();
+        } catch (Exception ex) {
+            return defValue;
         }
-        return null;
     }
 
 }
