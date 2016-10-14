@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -353,9 +354,11 @@ public class ZeroConf extends CordovaPlugin implements ServiceListener {
         obj.put("hostname", service.getServer());
 
         JSONArray addresses = new JSONArray();
-        String[] add = service.getHostAddresses();
-        for (int i = 0; i < add.length; i++) {
-            addresses.put(add[i]);
+        InetAddress[] inetAddresses = service.getInetAddresses();
+        for (int i = 0; i < inetAddresses.length; i++) {
+            if (inetAddresses[i] != null) {
+                addresses.put(inetAddresses[i].getHostAddress());
+            }
         }
         obj.put("addresses", addresses);
         
