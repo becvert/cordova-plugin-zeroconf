@@ -10,6 +10,10 @@ var exec = require('cordova/exec');
 
 var ZeroConf = {
 
+    getHostname : function(success, failure) {
+        return exec(success, failure, "ZeroConf", "getHostname", []);
+    },
+
     register : function(type, domain, name, port, props, success, failure) {
         return exec(success, failure, "ZeroConf", "register", [ type, domain, name, port, props ]);
     },

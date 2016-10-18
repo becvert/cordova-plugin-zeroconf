@@ -28,6 +28,19 @@ import Foundation
         }
         browsers.removeAll()
     }
+    
+    public func getHostname(_ command: CDVInvokedUrlCommand) {
+        
+        let hostname = Hostname.get()
+        
+        #if DEBUG
+            print("ZeroConf: hostname \(hostname)")
+        #endif
+
+        
+        let pluginResult = CDVPluginResult(status:CDVCommandStatus_OK, messageAs: hostname)
+        self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
+    }
 
     public func register(_ command: CDVInvokedUrlCommand) {
         
@@ -329,7 +342,21 @@ import Foundation
     
     fileprivate static func jsonifyService(_ netService: NetService) -> NSDictionary {
         
-        let addresses: [String] = IP(netService.addresses)
+        var ipv4Addresses: [String] = []
+        var ipv6Addresses: [String] = []
+        for address in netService.addresses! {
+            let family = extractFamily(address)
+            let addr = extractAddress(address)!
+            if  family == .ipv4 {
+                ipv4Addresses.append(addr)
+            } else if family == .ipv6 {
+                ipv6Addresses.append(addr)
+            }
+        }
+        
+        if ipv6Addresses.count > 1 {
+            ipv6Addresses = Array(Set(ipv6Addresses))
+        }
         
         var txtRecord: [String: String] = [:]
         let dict = NetService.dictionary(fromTXTRecord: netService.txtRecordData()!)
@@ -343,60 +370,28 @@ import Foundation
         }
         
         let service: NSDictionary = NSDictionary(
-            objects: [netService.domain, netService.type, netService.name, netService.port, hostName, addresses, txtRecord],
-            forKeys: ["domain" as NSCopying, "type" as NSCopying, "name" as NSCopying, "port" as NSCopying, "hostname" as NSCopying, "addresses" as NSCopying, "txtRecord" as NSCopying])
+            objects: [netService.domain, netService.type, netService.name, netService.port, hostName, ipv4Addresses, ipv6Addresses, txtRecord],
+            forKeys: ["domain" as NSCopying, "type" as NSCopying, "name" as NSCopying, "port" as NSCopying, "hostname" as NSCopying, "ipv4Addresses" as NSCopying, "ipv6Addresses" as NSCopying, "txtRecord" as NSCopying])
         
         return service
     }
     
-    // http://dev.eltima.com/post/99996366184/using-bonjour-in-swift
-    fileprivate static func IP(_ addresses: [Data]?) -> [String] {
-        var ips: [String] = []
-        if addresses != nil {
-            for addressBytes in addresses! {
-                var inetAddress : sockaddr_in!
-                var inetAddress6 : sockaddr_in6!
-                //NSData’s bytes returns a read-only pointer to the receiver’s contents.
-                let inetAddressPointer = (addressBytes as NSData).bytes.bindMemory(to: sockaddr_in.self, capacity: addressBytes.count)
-                //Access the underlying raw memory
-                inetAddress = inetAddressPointer.pointee
-                if inetAddress.sin_family == __uint8_t(AF_INET) {
-                }
-                else {
-                    if inetAddress.sin_family == __uint8_t(AF_INET6) {
-                        let inetAddressPointer6 = (addressBytes as NSData).bytes.bindMemory(to: sockaddr_in6.self, capacity: addressBytes.count)
-                        inetAddress6 = inetAddressPointer6.pointee
-                        inetAddress = nil
-                    }
-                    else {
-                        inetAddress = nil
-                    }
-                }
-                var ipString : UnsafePointer<CChar>?
-                //static func alloc(num: Int) -> UnsafeMutablePointer
-                let ipStringBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: Int(INET6_ADDRSTRLEN))
-                if inetAddress != nil {
-                    var addr = inetAddress.sin_addr
-                    ipString = inet_ntop(Int32(inetAddress.sin_family),
-                                         &addr,
-                                         ipStringBuffer,
-                                         __uint32_t (INET6_ADDRSTRLEN))
-                } else {
-                    if inetAddress6 != nil {
-                        var addr = inetAddress6.sin6_addr
-                        ipString = inet_ntop(Int32(inetAddress6.sin6_family),
-                                             &addr,
-                                             ipStringBuffer,
-                                             __uint32_t(INET6_ADDRSTRLEN))
-                    }
-                }
-                if ipString != nil {
-                    let ip = String(cString: ipString!)
-                    ips.append(ip)
-                }
-            }
+    public static func extractFamily(_ addressBytes:Data) -> Interface.Family {
+        let inetAddressPointer = (addressBytes as NSData).bytes.bindMemory(to: sockaddr.self, capacity: addressBytes.count)
+        if (inetAddressPointer.pointee.sa_family == sa_family_t(AF_INET)) {
+            return .ipv4
         }
-        return ips
+        else if (inetAddressPointer.pointee.sa_family == sa_family_t(AF_INET6)) {
+            return .ipv6
+        }
+        else {
+            return .other
+        }
+    }
+    
+    public static func extractAddress(_ addressBytes:Data) -> String? {
+        let inetAddressPointer = (addressBytes as NSData).bytes.bindMemory(to: sockaddr.self, capacity: addressBytes.count)
+        return Interface.extractAddress(inetAddressPointer.pointee)
     }
     
 }
