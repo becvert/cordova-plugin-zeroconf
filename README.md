@@ -8,9 +8,11 @@ This is not a background service. When the cordova view is destroyed/terminated,
 
 #### 1.2.0
 
-- added new parameter for domain
+- new getHostname function
+- added parameter for domain
 - added success/failure callbacks
 - normalized service object
+- more ipv6 support
 
 ## Installation ##
 
@@ -24,6 +26,15 @@ cordova plugin add cordova-plugin-zeroconf
 
 ```javascript
 var zeroconf = cordova.plugins.zeroconf;
+```
+
+#### `getHostname(success, failure)`
+Returns this device's hostname.
+
+```javascript
+zeroconf.getHostname(function success(hostname){
+    console.log(hostname); // ipad-of-becvert.local.
+});
 ```
 
 #### `register(type, domain, name, port, txtRecord, success, failure)`
@@ -65,7 +76,8 @@ zeroconf.watch('_http._tcp.', 'local.', function(result) {
         'name': 'Becvert\'s iPad',
         'port' : 80,
         'hostname' : 'ipad-of-becvert.local',
-        'addresses' : [ '192.168.1.125', '2001:0:5ef5:79fb:10cb:1dbf:3f57:feb0' ],
+        'ipv4Addresses' : [ '192.168.1.125' ], 
+        'ipv6Addresses' : [ '2001:0:5ef5:79fb:10cb:1dbf:3f57:feb0' ],
         'txtRecord' : {
             'foo' : 'bar'
         }
