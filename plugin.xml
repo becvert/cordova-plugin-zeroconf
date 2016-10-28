@@ -38,12 +38,10 @@
                 <param name="ios-package" value="ZeroConf"/>
             </feature>
         </config-file>
-        <header-file src="src/ios/ZeroConf-Bridging-Header.h" />
-        <source-file src="src/ios/ZeroConf.swift" />
-        <header-file src="src/ios/Hostname.h" autogen="true"/>
-        <header-file src="src/ios/Hostname.m" autogen="true"/>
-        <!-- https://github.com/hibento/swift-netutils/blob/master/NetUtils/Interface.swift -->
-        <source-file src="src/ios/Interface.swift" autogen="true"/>
+        <header-file src="src/ios/ZeroConf-Bridging-Header.h"/>
+        <source-file src="src/ios/ZeroConf.swift"/>
+        <header-file src="src/ios/Hostname.h"/>
+        <header-file src="src/ios/Hostname.m"/>
     </platform>
     
     <dependency id="cordova-plugin-add-swift-support"/>

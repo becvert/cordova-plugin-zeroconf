@@ -37,7 +37,6 @@ import Foundation
             print("ZeroConf: hostname \(hostname)")
         #endif
 
-        
         let pluginResult = CDVPluginResult(status:CDVCommandStatus_OK, messageAs: hostname)
         self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
@@ -140,7 +139,7 @@ import Foundation
     
     internal class Publisher: NSObject, NetServiceDelegate {
         
-        var nsns: NetService?
+        var nsp: NetService?
         var domain: String
         var type: String
         var name: String
@@ -162,7 +161,7 @@ import Foundation
             
             // Netservice
             let service = NetService(domain: domain, type: type , name: name, port: Int32(port))
-            nsns = service
+            nsp = service
             service.delegate = self
             service.setTXTRecord(NetService.data(fromTXTRecord: txtRecord))
             
@@ -174,24 +173,16 @@ import Foundation
         
         func unregister() {
             
-            if let service = nsns {
-                
-                commandDelegate?.run(inBackground: {
-                    service.stop()
-                })
-                
-                nsns = nil
-                commandDelegate = nil
+            if let service = nsp {
+                service.stop()
             }
             
         }
         
         func destroy() {
             
-            if let service = nsns {
+            if let service = nsp {
                 service.stop()
-                nsns = nil
-                commandDelegate = nil
             }
             
         }
@@ -214,6 +205,14 @@ import Foundation
             #endif
             
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR)
+            commandDelegate?.send(pluginResult, callbackId: callbackId)
+        }
+        
+        @objc func netServiceDidStop(_ netService: NetService) {
+            nsp = nil
+            commandDelegate = nil
+            
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
             commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
         
@@ -253,18 +252,8 @@ import Foundation
         func unwatch() {
             
             if let service = nsb {
-                
-                commandDelegate?.run(inBackground: {
-                    service.stop()
-                })
-                
-                nsb = nil
-                services.removeAll()
-                commandDelegate = nil
+                service.stop()
             }
-            
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT)
-            pluginResult?.setKeepCallbackAs(false)
             
         }
         
@@ -272,9 +261,6 @@ import Foundation
             
             if let service = nsb {
                 service.stop()
-                nsb = nil
-                services.removeAll()
-                commandDelegate = nil
             }
             
         }
@@ -338,6 +324,15 @@ import Foundation
             commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
         
+        @objc func netServiceDidStop(_ netService: NetService) {
+            nsb = nil
+            services.removeAll()
+            commandDelegate = nil
+            
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
+            commandDelegate?.send(pluginResult, callbackId: callbackId)
+        }
+        
     }
     
     fileprivate static func jsonifyService(_ netService: NetService) -> NSDictionary {
@@ -345,12 +340,16 @@ import Foundation
         var ipv4Addresses: [String] = []
         var ipv6Addresses: [String] = []
         for address in netService.addresses! {
-            let family = extractFamily(address)
-            let addr = extractAddress(address)!
-            if  family == .ipv4 {
-                ipv4Addresses.append(addr)
-            } else if family == .ipv6 {
-                ipv6Addresses.append(addr)
+            if let family = extractFamily(address) {
+                if  family == 4 {
+                    if let addr = extractAddress(address) {
+                        ipv4Addresses.append(addr)
+                    }
+                } else if family == 6 {
+                    if let addr = extractAddress(address) {
+                        ipv6Addresses.append(addr)
+                    }
+                }
             }
         }
         
@@ -376,22 +375,27 @@ import Foundation
         return service
     }
     
-    public static func extractFamily(_ addressBytes:Data) -> Interface.Family {
-        let inetAddressPointer = (addressBytes as NSData).bytes.bindMemory(to: sockaddr.self, capacity: addressBytes.count)
-        if (inetAddressPointer.pointee.sa_family == sa_family_t(AF_INET)) {
-            return .ipv4
+    fileprivate static func extractFamily(_ addressBytes:Data) -> Int? {
+        let addr = (addressBytes as NSData).bytes.load(as: sockaddr.self)
+        if (addr.sa_family == sa_family_t(AF_INET)) {
+            return 4
         }
-        else if (inetAddressPointer.pointee.sa_family == sa_family_t(AF_INET6)) {
-            return .ipv6
+        else if (addr.sa_family == sa_family_t(AF_INET6)) {
+            return 6
         }
         else {
-            return .other
+            return nil
         }
     }
     
-    public static func extractAddress(_ addressBytes:Data) -> String? {
-        let inetAddressPointer = (addressBytes as NSData).bytes.bindMemory(to: sockaddr.self, capacity: addressBytes.count)
-        return Interface.extractAddress(inetAddressPointer.pointee)
+    fileprivate static func extractAddress(_ addressBytes:Data) -> String? {
+        var addr = (addressBytes as NSData).bytes.load(as: sockaddr.self)
+        var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+        if (getnameinfo(&addr, socklen_t(addr.sa_len), &hostname,
+                        socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0) {
+            return String(cString: hostname)
+        }
+        return nil
     }
     
 }
