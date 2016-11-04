@@ -118,6 +118,7 @@ public class ZeroConf extends CordovaPlugin {
                 @Override
                 public void run() {
                     unregister(type, domain, name);
+                    callbackContext.success("Unregistered " + type + domain + " with name " + name);
                 }
             });
         } else if (ACTION_STOP.equals(action)) {
@@ -128,6 +129,7 @@ public class ZeroConf extends CordovaPlugin {
                 public void run() {
                     publisher.close();
                     registerServices.clear();
+                    callbackContext.success("Publisher did stop");
                 }
             });
         } else if (ACTION_WATCH.equals(action)) {
@@ -154,6 +156,7 @@ public class ZeroConf extends CordovaPlugin {
                 @Override
                 public void run() {
                     unwatch(type, domain);
+                    callbackContext.success("Stopped watching " + type + domain);
                 }
             });
         } else if (ACTION_CLOSE.equals(action)) {
@@ -164,6 +167,7 @@ public class ZeroConf extends CordovaPlugin {
                 public void run() {
                     browser.close();
                     callbacks.clear();
+                    callbackContext.success("Browser did close");
                 }
             });
         } else {
@@ -336,14 +340,9 @@ public class ZeroConf extends CordovaPlugin {
 
         public Observable<BonjourService> register(BonjourService bonjourService) {
             PublishSubject<BonjourService> subject = PublishSubject.create();
-            final Subscription[] subscriptions = new Subscription[1];
-            subscriptions[0] = this.rxDnssd.register(bonjourService)
-                    .doOnNext(new Action1<BonjourService>() {
-                        public void call(BonjourService service) {
-                            registrations.put(service, subscriptions[0]);
-                        }
-                    })
+            final Subscription subscription = this.rxDnssd.register(bonjourService)
                     .subscribe(subject);
+            registrations.put(bonjourService, subscription);
             return subject;
         }
 
