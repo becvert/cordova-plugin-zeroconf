@@ -76,21 +76,23 @@ public class ZeroConf extends CordovaPlugin {
             List<InetAddress> selectedAddresses = new ArrayList<InetAddress>();
             List<NetworkInterface> intfs = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface intf : intfs) {
-                // break on first found ipv4 & ipv6
-                boolean ipv4 = false;
-                boolean ipv6 = false;
-                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
-                for (InetAddress addr : addrs) {
-                    if (ipv4 && ipv6) {
-                        break;
-                    }
-                    if (!addr.isLoopbackAddress()) {
-                        if (addr instanceof Inet6Address && !ipv6) {
-                            selectedAddresses.add(addr);
-                            ipv6 = true;
-                        } else if (addr instanceof Inet4Address && !ipv4) {
-                            selectedAddresses.add(addr);
-                            ipv4 = true;
+                if (intf.supportsMulticast()) {
+                    // break on first found ipv4 & ipv6
+                    boolean ipv4 = false;
+                    boolean ipv6 = false;
+                    List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                    for (InetAddress addr : addrs) {
+                        if (ipv4 && ipv6) {
+                            break;
+                        }
+                        if (!addr.isLoopbackAddress()) {
+                            if (addr instanceof Inet6Address && !ipv6) {
+                                selectedAddresses.add(addr);
+                                ipv6 = true;
+                            } else if (addr instanceof Inet4Address && !ipv4) {
+                                selectedAddresses.add(addr);
+                                ipv4 = true;
+                            }
                         }
                     }
                 }
@@ -146,7 +148,7 @@ public class ZeroConf extends CordovaPlugin {
         if (ACTION_GET_HOSTNAME.equals(action)) {
 
             if (hostname != null) {
-                
+
                 Log.d(TAG, "Hostname: " + hostname);
 
                 callbackContext.success(hostname);
