@@ -6,6 +6,10 @@ This is not a background service. When the cordova view is destroyed/terminated,
 
 ## Changelog ##
 
+#### 1.2.1
+- android: check that NetworkInterface.supportsMulticast
+- iOS: add Hostname.m to the target
+
 #### 1.2.0
 
 - new getHostname function
