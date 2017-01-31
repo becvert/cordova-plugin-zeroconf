@@ -99,7 +99,7 @@ public class ZeroConf extends CordovaPlugin {
             }
             addresses = selectedAddresses;
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getMessage(), e);
         }
 
         Log.d(TAG, "Addresses " + addresses);
@@ -107,7 +107,7 @@ public class ZeroConf extends CordovaPlugin {
         try {
             hostname = getHostName();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getMessage(), e);
         }
 
         Log.d(TAG, "Hostname " + hostname);
@@ -122,7 +122,7 @@ public class ZeroConf extends CordovaPlugin {
             try {
                 registrationManager.stop();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 registrationManager = null;
             }
@@ -131,7 +131,7 @@ public class ZeroConf extends CordovaPlugin {
             try {
                 browserManager.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 browserManager = null;
             }
@@ -177,6 +177,10 @@ public class ZeroConf extends CordovaPlugin {
                         }
 
                         ServiceInfo service = registrationManager.register(type, domain, name, port, props);
+                        if (service == null) {
+                            callbackContext.error("Failed to register");
+                            return;
+                        }
 
                         JSONObject status = new JSONObject();
                         status.put("action", "registered");
@@ -188,10 +192,10 @@ public class ZeroConf extends CordovaPlugin {
                         callbackContext.sendPluginResult(result);
 
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
                     }
                 }
@@ -233,7 +237,7 @@ public class ZeroConf extends CordovaPlugin {
                             callbackContext.success();
 
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, e.getMessage(), e);
                             callbackContext.error("Error: " + e.getMessage());
                         }
                     }
@@ -261,7 +265,7 @@ public class ZeroConf extends CordovaPlugin {
                         browserManager.watch(type, domain, callbackContext);
 
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
                     }
                 }
@@ -308,7 +312,7 @@ public class ZeroConf extends CordovaPlugin {
                             callbackContext.success();
 
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, e.getMessage(), e);
                             callbackContext.error("Error: " + e.getMessage());
                         }
                     }
@@ -354,13 +358,18 @@ public class ZeroConf extends CordovaPlugin {
                 }
             }
 
-            ServiceInfo service = null;
+            ServiceInfo aService = null;
             for (JmDNS publisher : publishers) {
-                service = ServiceInfo.create(type + domain, name, port, 0, 0, txtRecord);
-                publisher.registerService(service);
+                ServiceInfo service = ServiceInfo.create(type + domain, name, port, 0, 0, txtRecord);
+                try {
+                    publisher.registerService(service);
+                    aService = service;
+                } catch (IllegalStateException e) {
+                    Log.e(TAG, e.getMessage(), e);
+                }
             }
             // returns only one of the ServiceInfo instances!
-            return service;
+            return aService;
         }
 
         public void unregister(String type, String domain, String name) {
