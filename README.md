@@ -6,6 +6,9 @@ This is not a background service. When the cordova view is destroyed/terminated,
 
 ## Changelog ##
 
+#### 1.2.2
+- android: re-registering while DNS entry is still cached causes IllegalStateException
+
 #### 1.2.1
 - android: check that NetworkInterface.supportsMulticast
 - iOS: add Hostname.m to the target
