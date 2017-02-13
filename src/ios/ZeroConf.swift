@@ -1,10 +1,3 @@
-/*
- * Cordova ZeroConf Plugin
- *
- * ZeroConf plugin for Cordova/Phonegap 
- * by Sylvain Brejeon
- */
- 
 import Foundation
 
 @objc(ZeroConf) public class ZeroConf : CDVPlugin  {

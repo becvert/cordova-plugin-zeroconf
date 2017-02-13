@@ -1,10 +1,3 @@
-/*
- * Cordova ZeroConf Plugin
- *
- * ZeroConf plugin for Cordova/Phonegap
- * by Sylvain Brejeon
- */
-
 'use strict';
 var exec = require('cordova/exec');
 

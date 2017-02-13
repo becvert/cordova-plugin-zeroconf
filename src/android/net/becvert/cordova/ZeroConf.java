@@ -1,10 +1,3 @@
-/*
- * Cordova ZeroConf Plugin
- *
- * ZeroConf plugin for Cordova/Phonegap 
- * by Sylvain Brejeon
- */
-
 package net.becvert.cordova;
 
 import java.io.IOException;
