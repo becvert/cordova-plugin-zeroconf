@@ -6,12 +6,16 @@ This is not a background service. When the cordova view is destroyed/terminated,
 
 ## Changelog ##
 
+#### 1.2.3
+- [Android] listening on all multicast and non-loopback interfaces instead of first found IPv4 and first found IPv6
+- [Android] fixing java.util.concurrent.RejectedExecutionException (BrowserManager.serviceAdded)
+
 #### 1.2.2
-- android: re-registering while DNS entry is still cached causes IllegalStateException
+- [Android] re-registering while DNS entry is still cached causes IllegalStateException
 
 #### 1.2.1
-- android: check that NetworkInterface.supportsMulticast
-- iOS: add Hostname.m to the target
+- [Android] check that NetworkInterface.supportsMulticast
+- [iOS] add Hostname.m to the target
 
 #### 1.2.0
 
