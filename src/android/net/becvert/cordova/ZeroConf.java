@@ -1,5 +1,7 @@
 package net.becvert.cordova;
 
+import static android.content.Context.WIFI_SERVICE;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
@@ -59,8 +62,8 @@ public class ZeroConf extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
 
-        WifiManager wifi = (WifiManager) this.cordova.getActivity()
-                .getSystemService(android.content.Context.WIFI_SERVICE);
+        Context context = this.cordova.getActivity().getApplicationContext();
+        WifiManager wifi = (WifiManager) context.getSystemService(WIFI_SERVICE);
         lock = wifi.createMulticastLock("ZeroConfPluginLock");
         lock.setReferenceCounted(true);
         lock.acquire();
@@ -70,21 +73,13 @@ public class ZeroConf extends CordovaPlugin {
             List<NetworkInterface> intfs = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface intf : intfs) {
                 if (intf.supportsMulticast()) {
-                    // break on first found ipv4 & ipv6
-                    boolean ipv4 = false;
-                    boolean ipv6 = false;
                     List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
                     for (InetAddress addr : addrs) {
-                        if (ipv4 && ipv6) {
-                            break;
-                        }
                         if (!addr.isLoopbackAddress()) {
-                            if (addr instanceof Inet6Address && !ipv6) {
+                            if (addr instanceof Inet6Address) {
                                 selectedAddresses.add(addr);
-                                ipv6 = true;
-                            } else if (addr instanceof Inet4Address && !ipv4) {
+                            } else if (addr instanceof Inet4Address) {
                                 selectedAddresses.add(addr);
-                                ipv4 = true;
                             }
                         }
                     }
@@ -458,10 +453,9 @@ public class ZeroConf extends CordovaPlugin {
         public void serviceAdded(ServiceEvent event) {
             Log.d(TAG, "Added");
 
-            // Force serviceResolved to be called again
-            for (JmDNS browser : browsers) {
-                browser.requestServiceInfo(event.getType(), event.getName(), 1);
-            }
+            // force serviceResolved to be called again
+            JmDNS browser = (JmDNS) event.getSource();
+            browser.requestServiceInfo(event.getType(), event.getName(), 1);
         }
 
         public void sendCallback(String action, ServiceInfo service) {
@@ -482,7 +476,7 @@ public class ZeroConf extends CordovaPlugin {
                 callbackContext.sendPluginResult(result);
 
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage(), e);
                 callbackContext.error("Error: " + e.getMessage());
             }
         }
