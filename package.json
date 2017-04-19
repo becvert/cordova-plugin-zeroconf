@@ -1,38 +1,39 @@
 {
-    "name": "cordova-plugin-zeroconf",
+    "name" : "cordova-plugin-zeroconf", 
     "version": "1.2.3",
-    "description": "Cordova ZeroConf plugin",
-    "cordova": {
-        "id": "cordova-plugin-zeroconf",
-        "platforms": [
-            "android",
-            "ios"
+    "description" : "Cordova ZeroConf plugin", 
+    "cordova" : {
+        "id" : "cordova-plugin-zeroconf", 
+        "platforms" : [
+            "android", 
+            "ios",
+            "windows"
         ]
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/becvert/cordova-plugin-zeroconf.git"
-    },
-    "keywords": [
-        "ecosystem:cordova",
-        "cordova-android",
-        "cordova-ios",
-        "cordova",
-        "plugin",
-        "network",
-        "zeroconf",
-        "bonjour",
-        "mdns",
-        "service",
+    }, 
+    "repository" : {
+        "type" : "git", 
+        "url" : "git+https://github.com/becvert/cordova-plugin-zeroconf.git"
+    }, 
+    "keywords" : [
+        "ecosystem:cordova", 
+        "cordova-android", 
+        "cordova-ios", 
+        "cordova", 
+        "plugin", 
+        "network", 
+        "zeroconf", 
+        "bonjour", 
+        "mdns", 
+        "service", 
         "discovery"
-    ],
+    ], 
     "author": {
         "name": "Sylvain Bréjeon",
         "url": "https://github.com/becvert"
     },
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/becvert/cordova-plugin-zeroconf/issues"
-    },
-    "homepage": "https://github.com/becvert/cordova-plugin-zeroconf"
+    "license" : "MIT", 
+    "bugs" : {
+        "url" : "https://github.com/becvert/cordova-plugin-zeroconf/issues"
+    }, 
+    "homepage" : "https://github.com/becvert/cordova-plugin-zeroconf"
 }

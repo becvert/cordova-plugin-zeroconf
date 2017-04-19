@@ -44,7 +44,14 @@
         <header-file src="src/ios/Hostname.h"/>
         <source-file src="src/ios/Hostname.m"/>
     </platform>
-    
+
+    <!-- windows -->
+    <platform name="windows">
+        <js-module src="src/windows/src/ZeroConfProxy.js" name="ZeroConfProxy">
+            <runs/>
+        </js-module>
+    </platform>
+
     <dependency id="cordova-plugin-add-swift-support"/>
 
 </plugin>
