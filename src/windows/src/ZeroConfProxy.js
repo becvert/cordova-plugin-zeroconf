@@ -100,9 +100,9 @@ var watch = function (success, failure, type, domain) {
             for (var address_index = 0; address_index != number_of_ips; ++address_index) {
                 var ip = new Windows.Networking.HostName(ips[address_index]);
                 if (ip.type === Windows.Networking.HostNameType.ipv4) {
-                    result.service.ipv4Addresses.push(ip);
+                    result.service.ipv4Addresses.push(ip.canonicalName);
                 } else {
-                    result.service.ipv6Addresses.push(ip);
+                    result.service.ipv6Addresses.push(ip.canonicalName);
                 }
             }
             var textAttributes = device.properties["System.Devices.Dnssd.TextAttributes"];
