@@ -45,10 +45,11 @@ import Foundation
             print("ZeroConf: register \(type + domain + "@@@" + name)")
         #endif
         
-        var txtRecord: [String: Data] = [:]
+        var txtRecord: [String: Data]?
         if let dict = command.arguments[4] as? [String: String] {
+            txtRecord = [:]
             for (key, value) in dict {
-                txtRecord[key] = value.data(using: String.Encoding.utf8)
+                txtRecord?[key] = value.data(using: String.Encoding.utf8)
             }
         }
         
@@ -137,11 +138,11 @@ import Foundation
         var type: String
         var name: String
         var port: Int
-        var txtRecord: [String: Data] = [:]
+        var txtRecord: [String: Data]?
         var callbackId: String
         var commandDelegate: CDVCommandDelegate?
         
-        init (withDomain domain: String, withType type: String, withName name: String, withPort port: Int, withTxtRecord txtRecord: [String: Data], withCallbackId callbackId: String) {
+        init (withDomain domain: String, withType type: String, withName name: String, withPort port: Int, withTxtRecord txtRecord: [String: Data]?, withCallbackId callbackId: String) {
             self.domain = domain
             self.type = type
             self.name = name
@@ -156,7 +157,12 @@ import Foundation
             let service = NetService(domain: domain, type: type , name: name, port: Int32(port))
             nsp = service
             service.delegate = self
-            service.setTXTRecord(NetService.data(fromTXTRecord: txtRecord))
+            
+            if let record = txtRecord {
+                if record.count > 0 {
+                    service.setTXTRecord(NetService.data(fromTXTRecord: record))
+                }
+            }
             
             commandDelegate?.run(inBackground: {
                 service.publish()
@@ -351,9 +357,11 @@ import Foundation
         }
         
         var txtRecord: [String: String] = [:]
-        let dict = NetService.dictionary(fromTXTRecord: netService.txtRecordData()!)
-        for (key, data) in dict {
-            txtRecord[key] = String(data: data, encoding:String.Encoding.utf8)
+        if let txtRecordData = netService.txtRecordData() {
+            let dict = NetService.dictionary(fromTXTRecord: txtRecordData)
+            for (key, data) in dict {
+                txtRecord[key] = String(data: data, encoding:String.Encoding.utf8)
+            }
         }
         
         var hostName:String = ""
