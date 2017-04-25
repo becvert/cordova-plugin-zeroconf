@@ -6,6 +6,10 @@ This is not a background service. When the cordova view is destroyed/terminated,
 
 ## Changelog ##
 
+#### 1.2.4
+- plugin.xml: moving js clobbers from global to only supported platforms
+- [iOS] fix for empty txtRecords
+
 #### 1.2.3
 - [Android] listening on all multicast and non-loopback interfaces instead of first found IPv4 and first found IPv6
 - [Android] fixing java.util.concurrent.RejectedExecutionException (BrowserManager.serviceAdded)
