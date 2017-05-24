@@ -1,16 +1,16 @@
 import Foundation
 
-@objc(ZeroConf) public class ZeroConf : CDVPlugin  {
+@objc(ZeroConf) open class ZeroConf : CDVPlugin  {
     
     fileprivate var publishers: [String: Publisher]!
     fileprivate var browsers: [String: Browser]!
     
-    override public func pluginInitialize() {
+    override open func pluginInitialize() {
         publishers  = [:]
         browsers = [:]
     }
     
-    override public func onAppTerminate() {
+    override open func onAppTerminate() {
         for (_, publisher) in publishers {
             publisher.destroy()
         }
@@ -22,7 +22,7 @@ import Foundation
         browsers.removeAll()
     }
     
-    public func getHostname(_ command: CDVInvokedUrlCommand) {
+    open func getHostname(_ command: CDVInvokedUrlCommand) {
         
         let hostname = Hostname.get()
         
@@ -34,7 +34,7 @@ import Foundation
         self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
 
-    public func register(_ command: CDVInvokedUrlCommand) {
+    open func register(_ command: CDVInvokedUrlCommand) {
         
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -60,7 +60,7 @@ import Foundation
         
     }
     
-    public func unregister(_ command: CDVInvokedUrlCommand) {
+    open func unregister(_ command: CDVInvokedUrlCommand) {
         
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -77,7 +77,7 @@ import Foundation
         
     }
     
-    public func stop(_ command: CDVInvokedUrlCommand) {
+    open func stop(_ command: CDVInvokedUrlCommand) {
         #if DEBUG
             print("ZeroConf: stop")
         #endif
@@ -88,7 +88,7 @@ import Foundation
         publishers.removeAll()
     }
     
-    public func watch(_ command: CDVInvokedUrlCommand) {
+    open func watch(_ command: CDVInvokedUrlCommand) {
         
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -104,7 +104,7 @@ import Foundation
         
     }
     
-    public func unwatch(_ command: CDVInvokedUrlCommand) {
+    open func unwatch(_ command: CDVInvokedUrlCommand) {
         
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -120,7 +120,7 @@ import Foundation
         
     }
     
-    public func close(_ command: CDVInvokedUrlCommand) {
+    open func close(_ command: CDVInvokedUrlCommand) {
         #if DEBUG
             print("ZeroConf: close")
         #endif
