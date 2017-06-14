@@ -33,6 +33,7 @@
     </platform>
 
     <platform name="ios">
+        <hook type="after_plugin_install" src="scripts/iosAddBridgingHeader.js" />
         <js-module src="www/zeroconf.js" name="ZeroConf">
             <clobbers target="cordova.plugins.zeroconf" />
         </js-module>
@@ -41,7 +42,7 @@
                 <param name="ios-package" value="ZeroConf"/>
             </feature>
         </config-file>
-        <header-file src="src/ios/ZeroConf-Bridging-Header.h"/>
+        <header-file src="src/ios/cordova-plugin-zeroconf-Bridging-Header.h"/>
         <source-file src="src/ios/ZeroConf.swift"/>
         <header-file src="src/ios/Hostname.h"/>
         <source-file src="src/ios/Hostname.m"/>
