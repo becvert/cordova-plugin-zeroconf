@@ -4,30 +4,7 @@ This plugin allows you to browse and publish ZeroConf/Bonjour/mDNS services from
 
 This is not a background service. When the cordova view is destroyed/terminated, publish and watch operations are stopped.
 
-## Changelog ##
-
-#### 1.2.4
-- plugin.xml: moving js clobbers from global to only supported platforms
-- [iOS] fix for empty txtRecords
-
-#### 1.2.3
-- [Android] listening on all multicast and non-loopback interfaces instead of first found IPv4 and first found IPv6
-- [Android] fixing java.util.concurrent.RejectedExecutionException (BrowserManager.serviceAdded)
-
-#### 1.2.2
-- [Android] re-registering while DNS entry is still cached causes IllegalStateException
-
-#### 1.2.1
-- [Android] check that NetworkInterface.supportsMulticast
-- [iOS] add Hostname.m to the target
-
-#### 1.2.0
-
-- new getHostname function
-- added parameter for domain
-- added success/failure callbacks
-- normalized service object
-- more ipv6 support
+[CHANGELOG](https://github.com/becvert/cordova-plugin-zeroconf/blob/master/CHANGELOG.md)
 
 ## Installation ##
 
@@ -41,6 +18,13 @@ cordova plugin add cordova-plugin-zeroconf
 
 ```javascript
 var zeroconf = cordova.plugins.zeroconf;
+```
+
+For Android, you may want set the following options to speed discovery up:
+ 
+```javascript 
+zeroconf.registerAddressFamily = 'ipv4'; // or 'ipv6' ('any' by default)
+zeroconf.watchAddressFamily = 'ipv4'; // or 'ipv6' ('any' by default)
 ```
 
 #### `getHostname(success, failure)`
@@ -122,12 +106,10 @@ zeroconf.close()
 ## Credits
 
 #### Android
-It depends on [the JmDNS library](http://jmdns.sourceforge.net/)
-
-Many thanks to [cambiocreative](https://github.com/cambiocreative/cordova-plugin-zeroconf) that got me started
+It depends on [the JmDNS library](https://github.com/jmdns/jmdns)
 
 #### iOS
-Implements https://developer.apple.com/bonjour/
+Implements [Apple's Bonjour](https://developer.apple.com/bonjour/)
 
 ## Licence ##
 
