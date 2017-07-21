@@ -245,7 +245,7 @@ import Foundation
             
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT)
             pluginResult?.setKeepCallbackAs(true)
-            
+            commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
         
         func unwatch() {
