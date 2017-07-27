@@ -373,7 +373,7 @@ public class ZeroConf extends CordovaPlugin {
                 try {
                     publisher.registerService(service);
                     aService = service;
-                } catch (IllegalStateException e) {
+                } catch (IOException e) {
                     Log.e(TAG, e.getMessage(), e);
                 }
             }
@@ -424,14 +424,7 @@ public class ZeroConf extends CordovaPlugin {
             callbacks.put(type + domain, callbackContext);
 
             for (JmDNS browser : browsers) {
-
                 browser.addServiceListener(type + domain, this);
-
-                ServiceInfo[] services = browser.list(type + domain);
-                for (ServiceInfo service : services) {
-                    sendCallback("added", service);
-                }
-
             }
 
         }
@@ -460,7 +453,7 @@ public class ZeroConf extends CordovaPlugin {
         public void serviceResolved(ServiceEvent ev) {
             Log.d(TAG, "Resolved");
 
-            sendCallback("added", ev.getInfo());
+            sendCallback("resolved", ev.getInfo());
         }
 
         @Override
@@ -471,12 +464,10 @@ public class ZeroConf extends CordovaPlugin {
         }
 
         @Override
-        public void serviceAdded(ServiceEvent event) {
+        public void serviceAdded(ServiceEvent ev) {
             Log.d(TAG, "Added");
 
-            // force serviceResolved to be called again
-            JmDNS browser = (JmDNS) event.getSource();
-            browser.requestServiceInfo(event.getType(), event.getName(), 5000);
+            sendCallback("added", ev.getInfo());
         }
 
         public void sendCallback(String action, ServiceInfo service) {
