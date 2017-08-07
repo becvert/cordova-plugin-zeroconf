@@ -301,10 +301,6 @@ public class ZeroConf extends CordovaPlugin {
                 callbackContext.success();
             }
 
-            PluginResult result = new PluginResult(Status.NO_RESULT);
-            result.setKeepCallback(false);
-            callbackContext.sendPluginResult(result);
-
         } else if (ACTION_CLOSE.equals(action)) {
 
             Log.d(TAG, "Close");
