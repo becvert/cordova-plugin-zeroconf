@@ -69,7 +69,11 @@ Starts watching for services of the specified type.
 zeroconf.watch('_http._tcp.', 'local.', function(result) {
     var action = result.action;
     var service = result.service;
-    /* service : {
+    if (action == 'added') {
+        console.log('service added', service);
+    } else if action == 'resolved') {
+        console.log('service resolved', service);
+        /* service : {
         'domain' : 'local.',
         'type' : '_http._tcp.',
         'name': 'Becvert\'s iPad',
@@ -80,9 +84,6 @@ zeroconf.watch('_http._tcp.', 'local.', function(result) {
         'txtRecord' : {
             'foo' : 'bar'
         }
-    } */
-    if (action == 'added') {
-        console.log('service added', service);
     } else {
         console.log('service removed', service);
     }
