@@ -1,3 +1,8 @@
+## [1.2.6] - 2017-08-07
+
+- new 'resolved' event
+- [Android] fixing unwatch does not return
+
 ## [1.2.5] - 2017-07-20
 
 - Changelog moved to CHANGELOG.md
