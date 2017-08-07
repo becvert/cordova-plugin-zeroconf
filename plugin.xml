@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-zeroconf"
-    version="1.2.6-dev">
+    version="1.2.6">
 
     <name>ZeroConf</name>
     <description>ZeroConf plugin for Cordova/Phonegap</description>
