@@ -71,7 +71,7 @@ zeroconf.watch('_http._tcp.', 'local.', function(result) {
     var service = result.service;
     if (action == 'added') {
         console.log('service added', service);
-    } else if action == 'resolved') {
+    } else if (action == 'resolved') {
         console.log('service resolved', service);
         /* service : {
         'domain' : 'local.',
@@ -83,7 +83,7 @@ zeroconf.watch('_http._tcp.', 'local.', function(result) {
         'ipv6Addresses' : [ '2001:0:5ef5:79fb:10cb:1dbf:3f57:feb0' ],
         'txtRecord' : {
             'foo' : 'bar'
-        }
+        } */
     } else {
         console.log('service removed', service);
     }
