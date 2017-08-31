@@ -1,3 +1,8 @@
+## [1.2.7] - 2017-08-31
+
+- setting version of cordova-plugin-add-swift-support dependency.
+- [Android] fixing watchAddressFamily option not applied
+
 ## [1.2.6] - 2017-08-07
 
 - new 'resolved' event
