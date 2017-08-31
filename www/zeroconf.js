@@ -23,7 +23,7 @@ var ZeroConf = {
     },
 
     watch : function(type, domain, success, failure) {
-        return exec(success, failure, "ZeroConf", "watch", [ type, domain, this.registerAddressFamily ]);
+        return exec(success, failure, "ZeroConf", "watch", [ type, domain, this.watchAddressFamily ]);
     },
 
     unwatch : function(type, domain, success, failure) {
