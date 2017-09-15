@@ -24,7 +24,7 @@ import Foundation
     
     open func getHostname(_ command: CDVInvokedUrlCommand) {
         
-        let hostname = Hostname.get()
+        let hostname = Hostname.get() as String
         
         #if DEBUG
             print("ZeroConf: hostname \(hostname)")
@@ -42,7 +42,7 @@ import Foundation
         let port = command.argument(at: 3) as! Int
         
         #if DEBUG
-            print("ZeroConf: register \(type + domain + "@@@" + name)")
+            print("ZeroConf: register \(name + "." + type + domain)")
         #endif
         
         var txtRecord: [String: Data]?
@@ -56,8 +56,8 @@ import Foundation
         let publisher = Publisher(withDomain: domain, withType: type, withName: name, withPort: port, withTxtRecord: txtRecord, withCallbackId: command.callbackId)
         publisher.commandDelegate = commandDelegate
         publisher.register()
-        publishers[type + domain + "@@@" + name] = publisher
-        
+        publishers[name + "." + type + domain] = publisher
+    
     }
     
     open func unregister(_ command: CDVInvokedUrlCommand) {
@@ -67,12 +67,12 @@ import Foundation
         let name = command.argument(at: 2) as! String
         
         #if DEBUG
-            print("ZeroConf: unregister \(type + domain + "@@@" + name)")
+            print("ZeroConf: unregister \(name + "." + type + domain)")
         #endif
         
-        if let publisher = publishers[type + domain + "@@@" + name] {
+        if let publisher = publishers[name + "." + type + domain] {
             publisher.unregister();
-            publishers.removeValue(forKey: type + domain + "@@@" + name)
+            publishers.removeValue(forKey: name + "." + type + domain)
         }
         
     }
@@ -245,7 +245,7 @@ import Foundation
             
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_NO_RESULT)
             pluginResult?.setKeepCallbackAs(true)
-            
+            commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
         
         func unwatch() {
@@ -274,14 +274,21 @@ import Foundation
         }
         
         @objc func netServiceBrowser(_ netServiceBrowser: NetServiceBrowser,
-            didFind netService: NetService,
-            moreComing moreServicesComing: Bool) {
-                #if DEBUG
-                    print("ZeroConf: netServiceBrowser:didFindService:\(netService)")
-                #endif
-                netService.delegate = self
-                netService.resolve(withTimeout: 0)
-                services[netService.name] = netService // keep strong reference to catch didResolveAddress
+                                     didFind netService: NetService,
+                                     moreComing moreServicesComing: Bool) {
+            #if DEBUG
+                print("ZeroConf: netServiceBrowser:didFindService:\(netService)")
+            #endif
+            netService.delegate = self
+            netService.resolve(withTimeout: 5000)
+            services[netService.name] = netService // keep strong reference to catch didResolveAddress
+            
+            let service = ZeroConf.jsonifyService(netService)
+            
+            let message: NSDictionary = NSDictionary(objects: ["added", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message as! [AnyHashable: Any])
+            pluginResult?.setKeepCallbackAs(true)
+            commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
         
         @objc func netServiceDidResolveAddress(_ netService: NetService) {
@@ -291,7 +298,7 @@ import Foundation
             
             let service = ZeroConf.jsonifyService(netService)
             
-            let message: NSDictionary = NSDictionary(objects: ["added", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
+            let message: NSDictionary = NSDictionary(objects: ["resolved", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message as! [AnyHashable: Any])
             pluginResult?.setKeepCallbackAs(true)
             commandDelegate?.send(pluginResult, callbackId: callbackId)

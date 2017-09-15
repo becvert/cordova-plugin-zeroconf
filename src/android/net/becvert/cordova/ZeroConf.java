@@ -46,6 +46,8 @@ public class ZeroConf extends CordovaPlugin {
     private RegistrationManager registrationManager;
     private BrowserManager browserManager;
     private List<InetAddress> addresses;
+    private List<InetAddress> ipv6Addresses;
+    private List<InetAddress> ipv4Addresses;
     private String hostname;
 
     public static final String ACTION_GET_HOSTNAME = "getHostname";
@@ -69,7 +71,9 @@ public class ZeroConf extends CordovaPlugin {
         lock.acquire();
 
         try {
-            List<InetAddress> selectedAddresses = new ArrayList<InetAddress>();
+            addresses = new ArrayList<InetAddress>();
+            ipv6Addresses = new ArrayList<InetAddress>();
+            ipv4Addresses = new ArrayList<InetAddress>();
             List<NetworkInterface> intfs = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface intf : intfs) {
                 if (intf.supportsMulticast()) {
@@ -77,15 +81,16 @@ public class ZeroConf extends CordovaPlugin {
                     for (InetAddress addr : addrs) {
                         if (!addr.isLoopbackAddress()) {
                             if (addr instanceof Inet6Address) {
-                                selectedAddresses.add(addr);
+                                addresses.add(addr);
+                                ipv6Addresses.add(addr);
                             } else if (addr instanceof Inet4Address) {
-                                selectedAddresses.add(addr);
+                                addresses.add(addr);
+                                ipv4Addresses.add(addr);
                             }
                         }
                     }
                 }
             }
-            addresses = selectedAddresses;
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -153,6 +158,7 @@ public class ZeroConf extends CordovaPlugin {
             final String name = args.optString(2);
             final int port = args.optInt(3);
             final JSONObject props = args.optJSONObject(4);
+            final String addressFamily = args.optString(5);
 
             Log.d(TAG, "Register " + type + domain);
 
@@ -161,7 +167,13 @@ public class ZeroConf extends CordovaPlugin {
                 public void run() {
                     try {
                         if (registrationManager == null) {
-                            registrationManager = new RegistrationManager(addresses, hostname);
+                            List<InetAddress> selectedAddresses = addresses;
+                            if ("ipv6".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv6Addresses;
+                            } else if ("ipv4".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv4Addresses;
+                            }
+                            registrationManager = new RegistrationManager(selectedAddresses, hostname);
                         }
 
                         ServiceInfo service = registrationManager.register(type, domain, name, port, props);
@@ -238,6 +250,7 @@ public class ZeroConf extends CordovaPlugin {
 
             final String type = args.optString(0);
             final String domain = args.optString(1);
+            final String addressFamily = args.optString(2);
 
             Log.d(TAG, "Watch " + type + domain);
 
@@ -247,7 +260,13 @@ public class ZeroConf extends CordovaPlugin {
                 public void run() {
                     try {
                         if (browserManager == null) {
-                            browserManager = new BrowserManager(addresses, hostname);
+                            List<InetAddress> selectedAddresses = addresses;
+                            if ("ipv6".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv6Addresses;
+                            } else if ("ipv4".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv4Addresses;
+                            }
+                            browserManager = new BrowserManager(selectedAddresses, hostname);
                         }
 
                         browserManager.watch(type, domain, callbackContext);
@@ -261,6 +280,7 @@ public class ZeroConf extends CordovaPlugin {
 
             PluginResult result = new PluginResult(Status.NO_RESULT);
             result.setKeepCallback(true);
+            callbackContext.sendPluginResult(result);
 
         } else if (ACTION_UNWATCH.equals(action)) {
 
@@ -280,9 +300,6 @@ public class ZeroConf extends CordovaPlugin {
             } else {
                 callbackContext.success();
             }
-
-            PluginResult result = new PluginResult(Status.NO_RESULT);
-            result.setKeepCallback(false);
 
         } else if (ACTION_CLOSE.equals(action)) {
 
@@ -352,7 +369,7 @@ public class ZeroConf extends CordovaPlugin {
                 try {
                     publisher.registerService(service);
                     aService = service;
-                } catch (IllegalStateException e) {
+                } catch (IOException e) {
                     Log.e(TAG, e.getMessage(), e);
                 }
             }
@@ -363,7 +380,7 @@ public class ZeroConf extends CordovaPlugin {
         public void unregister(String type, String domain, String name) {
 
             for (JmDNS publisher : publishers) {
-                ServiceInfo serviceInfo = publisher.getServiceInfo(type + domain, name);
+                ServiceInfo serviceInfo = publisher.getServiceInfo(type + domain, name, 5000);
                 if (serviceInfo != null) {
                     publisher.unregisterService(serviceInfo);
                 }
@@ -403,14 +420,7 @@ public class ZeroConf extends CordovaPlugin {
             callbacks.put(type + domain, callbackContext);
 
             for (JmDNS browser : browsers) {
-
                 browser.addServiceListener(type + domain, this);
-
-                ServiceInfo[] services = browser.list(type + domain);
-                for (ServiceInfo service : services) {
-                    sendCallback("added", service);
-                }
-
             }
 
         }
@@ -439,7 +449,7 @@ public class ZeroConf extends CordovaPlugin {
         public void serviceResolved(ServiceEvent ev) {
             Log.d(TAG, "Resolved");
 
-            sendCallback("added", ev.getInfo());
+            sendCallback("resolved", ev.getInfo());
         }
 
         @Override
@@ -450,12 +460,10 @@ public class ZeroConf extends CordovaPlugin {
         }
 
         @Override
-        public void serviceAdded(ServiceEvent event) {
+        public void serviceAdded(ServiceEvent ev) {
             Log.d(TAG, "Added");
 
-            // force serviceResolved to be called again
-            JmDNS browser = (JmDNS) event.getSource();
-            browser.requestServiceInfo(event.getType(), event.getName(), 1);
+            sendCallback("added", ev.getInfo());
         }
 
         public void sendCallback(String action, ServiceInfo service) {
