@@ -342,44 +342,45 @@ import Foundation
     }
     
     fileprivate static func jsonifyService(_ netService: NetService) -> NSDictionary {
-        
-        var ipv4Addresses: [String] = []
-        var ipv6Addresses: [String] = []
-        for address in netService.addresses! {
-            if let family = extractFamily(address) {
-                if  family == 4 {
-                    if let addr = extractAddress(address) {
-                        ipv4Addresses.append(addr)
-                    }
-                } else if family == 6 {
-                    if let addr = extractAddress(address) {
-                        ipv6Addresses.append(addr)
+        var service: NSDictionary = NSDictionary()
+        if netService.name.hasPrefix("NixplayNSDServer") {
+            var ipv4Addresses: [String] = []
+            var ipv6Addresses: [String] = []
+            for address in netService.addresses! {
+                if let family = extractFamily(address) {
+                    if  family == 4 {
+                        if let addr = extractAddress(address) {
+                            ipv4Addresses.append(addr)
+                        }
+                    } else if family == 6 {
+                        if let addr = extractAddress(address) {
+                            ipv6Addresses.append(addr)
+                        }
                     }
                 }
             }
-        }
-        
-        if ipv6Addresses.count > 1 {
-            ipv6Addresses = Array(Set(ipv6Addresses))
-        }
-        
-        var txtRecord: [String: String] = [:]
-        if let txtRecordData = netService.txtRecordData() {
-            let dict = NetService.dictionary(fromTXTRecord: txtRecordData)
-            for (key, data) in dict {
-                txtRecord[key] = String(data: data, encoding:String.Encoding.utf8)
+            
+            if ipv6Addresses.count > 1 {
+                ipv6Addresses = Array(Set(ipv6Addresses))
             }
+            
+            var txtRecord: [String: String] = [:]
+            if let txtRecordData = netService.txtRecordData() {
+                let dict = NetService.dictionary(fromTXTRecord: txtRecordData)
+                for (key, data) in dict {
+                    txtRecord[key] = String(data: data, encoding:String.Encoding.utf8)
+                }
+            }
+            
+            var hostName:String = ""
+            if netService.hostName != nil {
+                hostName = netService.hostName!
+            }
+            
+            service = NSDictionary(
+                objects: [netService.domain, netService.type, netService.name, netService.port, hostName, ipv4Addresses, ipv6Addresses, txtRecord],
+                forKeys: ["domain" as NSCopying, "type" as NSCopying, "name" as NSCopying, "port" as NSCopying, "hostname" as NSCopying, "ipv4Addresses" as NSCopying, "ipv6Addresses" as NSCopying, "txtRecord" as NSCopying])
         }
-        
-        var hostName:String = ""
-        if netService.hostName != nil {
-            hostName = netService.hostName!
-        }
-        
-        let service: NSDictionary = NSDictionary(
-            objects: [netService.domain, netService.type, netService.name, netService.port, hostName, ipv4Addresses, ipv6Addresses, txtRecord],
-            forKeys: ["domain" as NSCopying, "type" as NSCopying, "name" as NSCopying, "port" as NSCopying, "hostname" as NSCopying, "ipv4Addresses" as NSCopying, "ipv6Addresses" as NSCopying, "txtRecord" as NSCopying])
-        
         return service
     }
     
