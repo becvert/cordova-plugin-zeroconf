@@ -35,6 +35,8 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class ZeroConf extends CordovaPlugin {
@@ -98,7 +100,7 @@ public class ZeroConf extends CordovaPlugin {
         Log.d(TAG, "Addresses " + addresses);
 
         try {
-            hostname = getHostName();
+            hostname = getHostName(cordova);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -210,11 +212,12 @@ public class ZeroConf extends CordovaPlugin {
             Log.d(TAG, "Unregister " + type + domain);
 
             if (registrationManager != null) {
+                final RegistrationManager rm = registrationManager;
                 cordova.getThreadPool().execute(new Runnable() {
 
                     @Override
                     public void run() {
-                        registrationManager.unregister(type, domain, name);
+                        rm.unregister(type, domain, name);
                         callbackContext.success();
                     }
                 });
@@ -290,10 +293,11 @@ public class ZeroConf extends CordovaPlugin {
             Log.d(TAG, "Unwatch " + type + domain);
 
             if (browserManager != null) {
+                final BrowserManager bm = browserManager;
                 cordova.getThreadPool().execute(new Runnable() {
                     @Override
                     public void run() {
-                        browserManager.unwatch(type, domain);
+                        bm.unwatch(type, domain);
                         callbackContext.success();
                     }
                 });
@@ -351,8 +355,7 @@ public class ZeroConf extends CordovaPlugin {
 
         }
 
-        public ServiceInfo register(String type, String domain, String name, int port, JSONObject props)
-                throws JSONException, IOException {
+        public ServiceInfo register(String type, String domain, String name, int port, JSONObject props) throws JSONException, IOException {
 
             HashMap<String, String> txtRecord = new HashMap<String, String>();
             if (props != null) {
@@ -532,11 +535,17 @@ public class ZeroConf extends CordovaPlugin {
     }
 
     // http://stackoverflow.com/questions/21898456/get-android-wifi-net-hostname-from-code
-    public static String getHostName() throws NoSuchMethodException, SecurityException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException {
+    public static String getHostName(CordovaInterface cordova) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Method getString = Build.class.getDeclaredMethod("getString", String.class);
         getString.setAccessible(true);
-        return getString.invoke(null, "net.hostname").toString();
+        String hostName = getString.invoke(null, "net.hostname").toString();
+        if (TextUtils.isEmpty(hostName)) {
+            // API 26+ :
+            // Querying the net.hostname system property produces a null result
+            String id = Settings.Secure.getString(cordova.getActivity().getContentResolver(), Settings.Secure.ANDROID_ID);
+            hostName = "android-" + id;
+        }
+        return hostName;
     }
 
 }
