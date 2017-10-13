@@ -1,3 +1,10 @@
+## [1.2.8] - 2017-10-13
+
+- [Android] fixing NPE when calling close right after unwatch and stop right after unregister
+- [Android] fixing getHostName for API 26+
+- [Android] upgrading jmdns should fix slow closing
+- [Android] upgrading to [org.jmdns:jmdns:3.5.3](https://github.com/jmdns/jmdns)
+
 ## [1.2.7] - 2017-08-31
 
 - setting version of cordova-plugin-add-swift-support dependency.
