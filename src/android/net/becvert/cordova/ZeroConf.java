@@ -61,10 +61,8 @@ public class ZeroConf extends CordovaPlugin {
     public static final String ACTION_WATCH = "watch";
     public static final String ACTION_UNWATCH = "unwatch";
     public static final String ACTION_CLOSE = "close";
-
-    // Re-init
-    public static final String ACTION_INIT = "init";
-    public static final String ACTION_DESTROY = "destroy";
+    // Re-initialize
+    public static final String ACTION_INIT = "reInit";
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -337,41 +335,18 @@ public class ZeroConf extends CordovaPlugin {
             }
 
         } else if (ACTION_INIT.equals(action)) {
-            Log.e(TAG, "Initializing");
-            
-            cordova.getThreadPool().execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        initialize(cordova, webView);
-                        callbackContext.success();
-
-                    } catch (IOException e) {
-                        Log.e(TAG, e.getMessage(), e);
-                        callbackContext.error("Error: " + e.getMessage());
-                    }
-                }
-            });
-
-        } else if (ACTION_DESTROY.equals(action)) {
-            Log.e(TAG, "Destroying");
+            Log.e(TAG, "Re-Initializing");
 
             cordova.getThreadPool().execute(new Runnable() {
-
                 @Override
                 public void run() {
-                    try {
-                        onDestroy();
-                        callbackContext.success();
+                    onDestroy();
+                    initialize(cordova, webView);
+                    callbackContext.success();
 
-                    } catch (IOException e) {
-                        Log.e(TAG, e.getMessage(), e);
-                        callbackContext.error("Error: " + e.getMessage());
-                    }
+                    Log.e(TAG, "Re-Initialization complete");
                 }
             });
-
 
         } else {
             Log.e(TAG, "Invalid action: " + action);
