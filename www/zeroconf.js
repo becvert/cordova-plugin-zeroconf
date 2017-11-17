@@ -32,11 +32,11 @@ var ZeroConf = {
 
     close : function(success, failure) {
         return exec(success, failure, "ZeroConf", "close", []);
-    }
+    },
 
     init : function(success, failure) {
         return exec(success, failure, "ZeroConf", "initialize", []);
-    }
+    },
 
     destroy : function(success, failure) {
         return exec(success, failure, "ZeroConf", "onDestroy", []);
