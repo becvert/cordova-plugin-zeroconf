@@ -34,12 +34,8 @@ var ZeroConf = {
         return exec(success, failure, "ZeroConf", "close", []);
     },
 
-    init : function(success, failure) {
-        return exec(success, failure, "ZeroConf", "init", []);
-    },
-
-    destroy : function(success, failure) {
-        return exec(success, failure, "ZeroConf", "destroy", []);
+    reInit : function(success, failure) {
+        return exec(success, failure, "ZeroConf", "reInit", []);
     }
 
 };
