@@ -131,6 +131,30 @@ import Foundation
         browsers.removeAll()
     }
 
+    public func reInit(_ command: CDVInvokedUrlCommand) {
+        #if DEBUG
+            print("ZeroConf: reInit")
+        #endif
+
+        // Terminate
+        for (_, publisher) in publishers {
+            publisher.destroy()
+        }
+        publishers.removeAll()
+
+        for (_, browser) in browsers {
+            browser.destroy();
+        }
+        browsers.removeAll()
+
+        // init
+        publishers  = [:]
+        browsers = [:]
+
+        let pluginResult = CDVPluginResult(status:CDVCommandStatus_OK)
+        self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
+    }
+
     internal class Publisher: NSObject, NetServiceDelegate {
 
         var nsp: NetService?
