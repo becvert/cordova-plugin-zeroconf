@@ -129,6 +129,9 @@ import Foundation
             browser.unwatch()
         }
         browsers.removeAll()
+
+        let pluginResult = CDVPluginResult(status:CDVCommandStatus_OK)
+        self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
     
     internal class Publisher: NSObject, NetServiceDelegate {
