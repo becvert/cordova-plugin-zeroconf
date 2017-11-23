@@ -86,6 +86,9 @@ import Foundation
             publisher.unregister()
         }
         publishers.removeAll()
+
+        let pluginResult = CDVPluginResult(status:CDVCommandStatus_OK)
+        self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
 
     public func watch(_ command: CDVInvokedUrlCommand) {
