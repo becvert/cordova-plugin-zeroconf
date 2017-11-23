@@ -32,6 +32,10 @@ var ZeroConf = {
 
     close : function(success, failure) {
         return exec(success, failure, "ZeroConf", "close", []);
+    },
+
+    reInit : function(success, failure) {
+        return exec(success, failure, "ZeroConf", "reInit", []);
     }
 
 };

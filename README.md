@@ -104,6 +104,13 @@ Closes the service browser and stops watching.
 zeroconf.close()
 ```
 
+#### `reInit(success, failure)`
+Re-initializes the entire plugin, which resets the browsers and services. Use this if the WiFi network has changed while the app is running.
+
+```javascript
+zeroconf.reInit()
+```
+
 ## Credits
 
 #### Android

@@ -61,6 +61,8 @@ public class ZeroConf extends CordovaPlugin {
     public static final String ACTION_WATCH = "watch";
     public static final String ACTION_UNWATCH = "unwatch";
     public static final String ACTION_CLOSE = "close";
+    // Re-initialize
+    public static final String ACTION_REINIT = "reInit";
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -135,6 +137,8 @@ public class ZeroConf extends CordovaPlugin {
             lock.release();
             lock = null;
         }
+
+        Log.v(TAG, "Destroyed");
     }
 
     @Override
@@ -329,6 +333,20 @@ public class ZeroConf extends CordovaPlugin {
             } else {
                 callbackContext.success();
             }
+
+        } else if (ACTION_REINIT.equals(action)) {
+            Log.e(TAG, "Re-Initializing");
+
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    onDestroy();
+                    initialize(cordova, webView);
+                    callbackContext.success();
+
+                    Log.e(TAG, "Re-Initialization complete");
+                }
+            });
 
         } else {
             Log.e(TAG, "Invalid action: " + action);
