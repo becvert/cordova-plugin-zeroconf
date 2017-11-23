@@ -1,3 +1,7 @@
+## [1.2.9] - 2017-11-23
+
+- Added `reInit()` method to allow for runtime plugin reset
+
 ## [1.2.8] - 2017-10-13
 
 - [Android] fixing NPE when calling close right after unwatch and stop right after unregister

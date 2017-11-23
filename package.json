@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-zeroconf",
-    "version": "1.2.8",
+    "version": "1.2.9",
     "description": "Cordova ZeroConf plugin",
     "cordova": {
         "id": "cordova-plugin-zeroconf",
@@ -29,6 +29,10 @@
     "author": {
         "name": "Sylvain Bréjeon",
         "url": "https://github.com/becvert"
+    },
+    "contributors": {
+        "name": "Eric McNiece",
+        "url": "https://github.com/emcniece"
     },
     "license": "MIT",
     "bugs": {
