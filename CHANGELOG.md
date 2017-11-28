@@ -1,6 +1,8 @@
-## [1.2.9] - 2017-11-23
+## [1.3.0] - 2017-11-23
 
 - Added `reInit()` method to allow for runtime plugin reset
+- [iOS] Added `close()` callback (per [#52](https://github.com/becvert/cordova-plugin-zeroconf/issues/52))
+- [iOS] Added `stop()` callback
 
 ## [1.2.8] - 2017-10-13
 
