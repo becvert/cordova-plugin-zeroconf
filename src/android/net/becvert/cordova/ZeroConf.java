@@ -71,8 +71,7 @@ public class ZeroConf extends CordovaPlugin {
         Context context = this.cordova.getActivity().getApplicationContext();
         WifiManager wifi = (WifiManager) context.getSystemService(WIFI_SERVICE);
         lock = wifi.createMulticastLock("ZeroConfPluginLock");
-        lock.setReferenceCounted(true);
-        lock.acquire();
+        lock.setReferenceCounted(false);
 
         try {
             addresses = new ArrayList<InetAddress>();
@@ -427,6 +426,8 @@ public class ZeroConf extends CordovaPlugin {
 
         public BrowserManager(List<InetAddress> addresses, String hostname) throws IOException {
 
+            lock.acquire();
+
             if (addresses == null || addresses.size() == 0) {
                 browsers.add(JmDNS.create(null, hostname));
             } else {
@@ -457,6 +458,8 @@ public class ZeroConf extends CordovaPlugin {
         }
 
         private void close() throws IOException {
+
+            lock.release();
 
             callbacks.clear();
 
