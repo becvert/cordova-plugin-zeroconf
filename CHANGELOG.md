@@ -1,3 +1,8 @@
+## [1.3.1] - 2018-01-02
+
+- [Android] acquiring Multicast lock on browsing only
+- [iOS] updating cordova-plugin-add-swift-support dependency to version 1.7.1
+
 ## [1.3.0] - 2017-11-23
 
 - Added `reInit()` method to allow for runtime plugin reset
@@ -13,8 +18,8 @@
 
 ## [1.2.7] - 2017-08-31
 
-- setting version of cordova-plugin-add-swift-support dependency.
 - [Android] fixing watchAddressFamily option not applied
+- [iOS] setting version of cordova-plugin-add-swift-support dependency.
 
 ## [1.2.6] - 2017-08-07
 
