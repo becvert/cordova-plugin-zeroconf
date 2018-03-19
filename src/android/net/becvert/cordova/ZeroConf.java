@@ -1,6 +1,21 @@
 package net.becvert.cordova;
 
-import static android.content.Context.WIFI_SERVICE;
+import android.content.Context;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.util.Log;
+
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PluginResult;
+import org.apache.cordova.PluginResult.Status;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -16,28 +31,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
-import org.apache.cordova.PluginResult.Status;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.provider.Settings;
-import android.text.TextUtils;
-import android.util.Log;
+import static android.content.Context.WIFI_SERVICE;
 
 public class ZeroConf extends CordovaPlugin {
 
@@ -74,9 +75,9 @@ public class ZeroConf extends CordovaPlugin {
         lock.setReferenceCounted(false);
 
         try {
-            addresses = new ArrayList<InetAddress>();
-            ipv6Addresses = new ArrayList<InetAddress>();
-            ipv4Addresses = new ArrayList<InetAddress>();
+            addresses = new CopyOnWriteArrayList<InetAddress>();
+            ipv6Addresses = new CopyOnWriteArrayList<InetAddress>();
+            ipv4Addresses = new CopyOnWriteArrayList<InetAddress>();
             List<NetworkInterface> intfs = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface intf : intfs) {
                 if (intf.supportsMulticast()) {
@@ -202,6 +203,9 @@ public class ZeroConf extends CordovaPlugin {
                     } catch (IOException e) {
                         Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
+                    } catch (RuntimeException e) {
+                        Log.e(TAG, e.getMessage(), e);
+                        callbackContext.error("Error: " + e.getMessage());
                     }
                 }
             });
@@ -278,6 +282,9 @@ public class ZeroConf extends CordovaPlugin {
                         browserManager.watch(type, domain, callbackContext);
 
                     } catch (IOException e) {
+                        Log.e(TAG, e.getMessage(), e);
+                        callbackContext.error("Error: " + e.getMessage());
+                    } catch (RuntimeException e) {
                         Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
                     }
