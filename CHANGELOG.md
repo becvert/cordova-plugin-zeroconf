@@ -1,3 +1,7 @@
+## [1.3.2] - 2018-03-20
+
+- [Android] preventing crash (ConcurrentModificationException and RuntimeException)
+
 ## [1.3.1] - 2018-01-02
 
 - [Android] acquiring Multicast lock on browsing only
