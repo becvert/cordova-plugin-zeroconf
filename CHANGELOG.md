@@ -1,6 +1,7 @@
-## [1.3.2] - 2018-03-20
+## [1.3.2] - 2018-04-03
 
 - [Android] preventing crash (ConcurrentModificationException and RuntimeException)
+- [iOS] updating cordova-plugin-add-swift-support dependency to 1.7.2
 
 ## [1.3.1] - 2018-01-02
 
