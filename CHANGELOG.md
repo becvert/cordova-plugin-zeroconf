@@ -1,3 +1,7 @@
+## [1.3.3] - 2018-04-13
+
+- [Android] updating JmDNS dependency to 3.5.4
+
 ## [1.3.2] - 2018-04-03
 
 - [Android] preventing crash (ConcurrentModificationException and RuntimeException)
