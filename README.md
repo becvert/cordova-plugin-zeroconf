@@ -114,7 +114,7 @@ zeroconf.reInit()
 ## Credits
 
 #### Android
-It depends on [the JmDNS library](https://github.com/jmdns/jmdns)
+It depends on [andriydruk/RxDNSSD](https://github.com/andriydruk/RxDNSSD)
 
 #### iOS
 Implements [Apple's Bonjour](https://developer.apple.com/bonjour/)
