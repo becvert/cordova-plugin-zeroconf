@@ -22,7 +22,7 @@ import Foundation
         browsers.removeAll()
     }
 
-    public func getHostname(_ command: CDVInvokedUrlCommand) {
+    @objc public func getHostname(_ command: CDVInvokedUrlCommand) {
 
         let hostname = Hostname.get() as String
 
@@ -34,7 +34,7 @@ import Foundation
         self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
 
-    public func register(_ command: CDVInvokedUrlCommand) {
+    @objc public func register(_ command: CDVInvokedUrlCommand) {
 
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -60,7 +60,7 @@ import Foundation
 
     }
 
-    public func unregister(_ command: CDVInvokedUrlCommand) {
+    @objc public func unregister(_ command: CDVInvokedUrlCommand) {
 
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -77,7 +77,7 @@ import Foundation
 
     }
 
-    public func stop(_ command: CDVInvokedUrlCommand) {
+    @objc public func stop(_ command: CDVInvokedUrlCommand) {
         #if DEBUG
             print("ZeroConf: stop")
         #endif
@@ -91,7 +91,7 @@ import Foundation
         self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
 
-    public func watch(_ command: CDVInvokedUrlCommand) {
+    @objc public func watch(_ command: CDVInvokedUrlCommand) {
 
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -107,7 +107,7 @@ import Foundation
 
     }
 
-    public func unwatch(_ command: CDVInvokedUrlCommand) {
+    @objc public func unwatch(_ command: CDVInvokedUrlCommand) {
 
         let type = command.argument(at: 0) as! String
         let domain = command.argument(at: 1) as! String
@@ -123,7 +123,7 @@ import Foundation
 
     }
 
-    public func close(_ command: CDVInvokedUrlCommand) {
+    @objc public func close(_ command: CDVInvokedUrlCommand) {
         #if DEBUG
             print("ZeroConf: close")
         #endif
@@ -137,7 +137,7 @@ import Foundation
         self.commandDelegate?.send(pluginResult, callbackId: command.callbackId)
     }
 
-    public func reInit(_ command: CDVInvokedUrlCommand) {
+    @objc public func reInit(_ command: CDVInvokedUrlCommand) {
         #if DEBUG
             print("ZeroConf: reInit")
         #endif
@@ -224,7 +224,7 @@ import Foundation
             let service = ZeroConf.jsonifyService(netService)
 
             let message: NSDictionary = NSDictionary(objects: ["registered", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message as! [AnyHashable: Any])
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: (message as! [AnyHashable: Any]))
             commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
 
@@ -316,7 +316,7 @@ import Foundation
             let service = ZeroConf.jsonifyService(netService)
 
             let message: NSDictionary = NSDictionary(objects: ["added", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message as! [AnyHashable: Any])
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: (message as! [AnyHashable: Any]))
             pluginResult?.setKeepCallbackAs(true)
             commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
@@ -329,7 +329,7 @@ import Foundation
             let service = ZeroConf.jsonifyService(netService)
 
             let message: NSDictionary = NSDictionary(objects: ["resolved", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message as! [AnyHashable: Any])
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: (message as! [AnyHashable: Any]))
             pluginResult?.setKeepCallbackAs(true)
             commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
@@ -355,7 +355,7 @@ import Foundation
             let service = ZeroConf.jsonifyService(netService)
 
             let message: NSDictionary = NSDictionary(objects: ["removed", service], forKeys: ["action" as NSCopying, "service" as NSCopying])
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: message as! [AnyHashable: Any])
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: (message as! [AnyHashable: Any]))
             pluginResult?.setKeepCallbackAs(true)
             commandDelegate?.send(pluginResult, callbackId: callbackId)
         }
