@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-zeroconf"
-    version="1.3.3">
+    version="1.4.0">
 
     <name>ZeroConf</name>
     <description>ZeroConf plugin for Cordova/Phonegap</description>
@@ -25,7 +25,7 @@
             </feature>
         </config-file>
         <source-file src="src/android/net/becvert/cordova/ZeroConf.java" target-dir="src/net/becvert/cordova" />
-        <framework src="org.jmdns:jmdns:3.5.4" />
+        <framework src="org.jmdns:jmdns:3.5.5" />
     </platform>
 
     <platform name="ios">
@@ -43,6 +43,6 @@
         <source-file src="src/ios/Hostname.m"/>
     </platform>
     
-    <dependency id="cordova-plugin-add-swift-support" version="1.7.2"/>
+    <dependency id="cordova-plugin-add-swift-support" version="2.0.1"/>
 
 </plugin>
