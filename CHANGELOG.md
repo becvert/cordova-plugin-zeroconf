@@ -1,3 +1,17 @@
+## [1.5.0] - 2019-04-02
+
+- [Android] updating RxDNSSD dependency to 0.9.13
+- [iOS] updating cordova-plugin-add-swift-support dependency to 2.0.1
+- [iOS] support Swift 4
+
+## [1.4.2] - 2018-11-26
+
+- [Android] discarding service events when dnssd is being destroyed
+
+## [1.4.1] - 2018-11-12
+
+- [Android] updating RxDNSSD dependency to 0.9.11
+
 ## [1.4.0] - 2018-10-30
 
 - [Android] implementing dnssd from [andriydruk/RxDNSSD](https://github.com/andriydruk/RxDNSSD)
