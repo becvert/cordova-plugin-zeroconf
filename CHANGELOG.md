@@ -2,6 +2,7 @@
 
 - [Android] updating JmDNS dependency to 3.5.5
 - [iOS] updating cordova-plugin-add-swift-support dependency to 2.0.1
+- [iOS] support Swift 4
 
 ## [1.3.3] - 2018-04-13
 
