@@ -82,6 +82,8 @@ public class ZeroConf extends CordovaPlugin {
         if (registrationManager != null) {
             try {
                 registrationManager.stop();
+            } catch (RuntimeException e) {
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 registrationManager = null;
             }
@@ -89,6 +91,8 @@ public class ZeroConf extends CordovaPlugin {
         if (browserManager != null) {
             try {
                 browserManager.close();
+            } catch (RuntimeException e) {
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 browserManager = null;
             }
@@ -318,6 +322,10 @@ public class ZeroConf extends CordovaPlugin {
 
         @Override
         public void serviceRegistered(DNSSDRegistration registration, int flags, String serviceName, String regType, String domain) {
+            if (dnssd == null) {
+                // invalid state
+                return;
+            }
             try {
                 String fullName = dnssd.constructFullName(serviceName, regType, domain);
                 this.sendCallback("registered", jsonifyService(fullName, null, -1, null));
@@ -404,6 +412,11 @@ public class ZeroConf extends CordovaPlugin {
         public void serviceFound(DNSSDService browser, int flags, int ifIndex, String serviceName, String regType, String domain) {
             Log.d(TAG, "Added");
 
+            if (dnssd == null) {
+                // invalid state
+                return;
+            }
+
             try {
                 String fullName = dnssd.constructFullName(serviceName, regType, domain);
                 services.put(fullName, jsonifyService(fullName, null, -1, null));
@@ -419,6 +432,11 @@ public class ZeroConf extends CordovaPlugin {
         @Override
         public void serviceResolved(DNSSDService resolver, int flags, int ifIndex, String fullName, String hostName, int port, Map<String, String> txtRecord) {
             Log.d(TAG, "Resolved");
+
+            if (dnssd == null) {
+                // invalid state
+                return;
+            }
 
             try {
                 services.put(fullName, jsonifyService(fullName, hostName, port, txtRecord));
@@ -465,6 +483,11 @@ public class ZeroConf extends CordovaPlugin {
         @Override
         public void serviceLost(DNSSDService browser, int flags, int ifIndex, String serviceName, String regType, String domain) {
             Log.d(TAG, "Removed");
+
+            if (dnssd == null) {
+                // invalid state
+                return;
+            }
 
             try {
                 String fullName = dnssd.constructFullName(serviceName, regType, domain);
