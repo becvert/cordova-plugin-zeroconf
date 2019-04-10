@@ -6,11 +6,6 @@ This is not a background service. When the cordova view is destroyed/terminated,
 
 ## Changelog ##
 
-#### fix
-```
-SyntaxError: Block-scoped declarations (let, const, function, class) not yet supported outside strict mode
-```
-
 #### 1.2.4
 - plugin.xml: moving js clobbers from global to only supported platforms
 - [iOS] fix for empty txtRecords
