@@ -48,6 +48,6 @@
         <source-file src="src/ios/Hostname.m"/>
     </platform>
     
-    <dependency id="cordova-plugin-add-swift-support"/>
+    <dependency id="cordova-plugin-add-swift-support"  version="1.7.0"/>
 
 </plugin>
