@@ -1,3 +1,4 @@
+'use strict';
 module.exports = function(context) {
   var fs = context.requireCordovaModule('fs');
   var path = context.requireCordovaModule('path');
