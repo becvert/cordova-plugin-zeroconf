@@ -1,6 +1,21 @@
 package net.becvert.cordova;
 
-import static android.content.Context.WIFI_SERVICE;
+import android.content.Context;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.util.Log;
+
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PluginResult;
+import org.apache.cordova.PluginResult.Status;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -16,26 +31,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
-import org.apache.cordova.PluginResult.Status;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.util.Log;
+import static android.content.Context.WIFI_SERVICE;
 
 public class ZeroConf extends CordovaPlugin {
 
@@ -46,6 +49,8 @@ public class ZeroConf extends CordovaPlugin {
     private RegistrationManager registrationManager;
     private BrowserManager browserManager;
     private List<InetAddress> addresses;
+    private List<InetAddress> ipv6Addresses;
+    private List<InetAddress> ipv4Addresses;
     private String hostname;
 
     public static final String ACTION_GET_HOSTNAME = "getHostname";
@@ -57,6 +62,8 @@ public class ZeroConf extends CordovaPlugin {
     public static final String ACTION_WATCH = "watch";
     public static final String ACTION_UNWATCH = "unwatch";
     public static final String ACTION_CLOSE = "close";
+    // Re-initialize
+    public static final String ACTION_REINIT = "reInit";
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -65,11 +72,12 @@ public class ZeroConf extends CordovaPlugin {
         Context context = this.cordova.getActivity().getApplicationContext();
         WifiManager wifi = (WifiManager) context.getSystemService(WIFI_SERVICE);
         lock = wifi.createMulticastLock("ZeroConfPluginLock");
-        lock.setReferenceCounted(true);
-        lock.acquire();
+        lock.setReferenceCounted(false);
 
         try {
-            List<InetAddress> selectedAddresses = new ArrayList<InetAddress>();
+            addresses = new CopyOnWriteArrayList<InetAddress>();
+            ipv6Addresses = new CopyOnWriteArrayList<InetAddress>();
+            ipv4Addresses = new CopyOnWriteArrayList<InetAddress>();
             List<NetworkInterface> intfs = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface intf : intfs) {
                 if (intf.supportsMulticast()) {
@@ -77,15 +85,16 @@ public class ZeroConf extends CordovaPlugin {
                     for (InetAddress addr : addrs) {
                         if (!addr.isLoopbackAddress()) {
                             if (addr instanceof Inet6Address) {
-                                selectedAddresses.add(addr);
+                                addresses.add(addr);
+                                ipv6Addresses.add(addr);
                             } else if (addr instanceof Inet4Address) {
-                                selectedAddresses.add(addr);
+                                addresses.add(addr);
+                                ipv4Addresses.add(addr);
                             }
                         }
                     }
                 }
             }
-            addresses = selectedAddresses;
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -93,7 +102,7 @@ public class ZeroConf extends CordovaPlugin {
         Log.d(TAG, "Addresses " + addresses);
 
         try {
-            hostname = getHostName();
+            hostname = getHostName(cordova);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
@@ -128,6 +137,8 @@ public class ZeroConf extends CordovaPlugin {
             lock.release();
             lock = null;
         }
+
+        Log.v(TAG, "Destroyed");
     }
 
     @Override
@@ -153,6 +164,7 @@ public class ZeroConf extends CordovaPlugin {
             final String name = args.optString(2);
             final int port = args.optInt(3);
             final JSONObject props = args.optJSONObject(4);
+            final String addressFamily = args.optString(5);
 
             Log.d(TAG, "Register " + type + domain);
 
@@ -161,7 +173,13 @@ public class ZeroConf extends CordovaPlugin {
                 public void run() {
                     try {
                         if (registrationManager == null) {
-                            registrationManager = new RegistrationManager(addresses, hostname);
+                            List<InetAddress> selectedAddresses = addresses;
+                            if ("ipv6".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv6Addresses;
+                            } else if ("ipv4".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv4Addresses;
+                            }
+                            registrationManager = new RegistrationManager(selectedAddresses, hostname);
                         }
 
                         ServiceInfo service = registrationManager.register(type, domain, name, port, props);
@@ -185,6 +203,9 @@ public class ZeroConf extends CordovaPlugin {
                     } catch (IOException e) {
                         Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
+                    } catch (RuntimeException e) {
+                        Log.e(TAG, e.getMessage(), e);
+                        callbackContext.error("Error: " + e.getMessage());
                     }
                 }
             });
@@ -198,11 +219,12 @@ public class ZeroConf extends CordovaPlugin {
             Log.d(TAG, "Unregister " + type + domain);
 
             if (registrationManager != null) {
+                final RegistrationManager rm = registrationManager;
                 cordova.getThreadPool().execute(new Runnable() {
 
                     @Override
                     public void run() {
-                        registrationManager.unregister(type, domain, name);
+                        rm.unregister(type, domain, name);
                         callbackContext.success();
                     }
                 });
@@ -238,6 +260,7 @@ public class ZeroConf extends CordovaPlugin {
 
             final String type = args.optString(0);
             final String domain = args.optString(1);
+            final String addressFamily = args.optString(2);
 
             Log.d(TAG, "Watch " + type + domain);
 
@@ -247,12 +270,21 @@ public class ZeroConf extends CordovaPlugin {
                 public void run() {
                     try {
                         if (browserManager == null) {
-                            browserManager = new BrowserManager(addresses, hostname);
+                            List<InetAddress> selectedAddresses = addresses;
+                            if ("ipv6".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv6Addresses;
+                            } else if ("ipv4".equalsIgnoreCase(addressFamily)) {
+                                selectedAddresses = ipv4Addresses;
+                            }
+                            browserManager = new BrowserManager(selectedAddresses, hostname);
                         }
 
                         browserManager.watch(type, domain, callbackContext);
 
                     } catch (IOException e) {
+                        Log.e(TAG, e.getMessage(), e);
+                        callbackContext.error("Error: " + e.getMessage());
+                    } catch (RuntimeException e) {
                         Log.e(TAG, e.getMessage(), e);
                         callbackContext.error("Error: " + e.getMessage());
                     }
@@ -261,6 +293,7 @@ public class ZeroConf extends CordovaPlugin {
 
             PluginResult result = new PluginResult(Status.NO_RESULT);
             result.setKeepCallback(true);
+            callbackContext.sendPluginResult(result);
 
         } else if (ACTION_UNWATCH.equals(action)) {
 
@@ -270,19 +303,17 @@ public class ZeroConf extends CordovaPlugin {
             Log.d(TAG, "Unwatch " + type + domain);
 
             if (browserManager != null) {
+                final BrowserManager bm = browserManager;
                 cordova.getThreadPool().execute(new Runnable() {
                     @Override
                     public void run() {
-                        browserManager.unwatch(type, domain);
+                        bm.unwatch(type, domain);
                         callbackContext.success();
                     }
                 });
             } else {
                 callbackContext.success();
             }
-
-            PluginResult result = new PluginResult(Status.NO_RESULT);
-            result.setKeepCallback(false);
 
         } else if (ACTION_CLOSE.equals(action)) {
 
@@ -309,6 +340,20 @@ public class ZeroConf extends CordovaPlugin {
                 callbackContext.success();
             }
 
+        } else if (ACTION_REINIT.equals(action)) {
+            Log.e(TAG, "Re-Initializing");
+
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    onDestroy();
+                    initialize(cordova, webView);
+                    callbackContext.success();
+
+                    Log.e(TAG, "Re-Initialization complete");
+                }
+            });
+
         } else {
             Log.e(TAG, "Invalid action: " + action);
             callbackContext.error("Invalid action: " + action);
@@ -334,8 +379,7 @@ public class ZeroConf extends CordovaPlugin {
 
         }
 
-        public ServiceInfo register(String type, String domain, String name, int port, JSONObject props)
-                throws JSONException, IOException {
+        public ServiceInfo register(String type, String domain, String name, int port, JSONObject props) throws JSONException, IOException {
 
             HashMap<String, String> txtRecord = new HashMap<String, String>();
             if (props != null) {
@@ -352,7 +396,7 @@ public class ZeroConf extends CordovaPlugin {
                 try {
                     publisher.registerService(service);
                     aService = service;
-                } catch (IllegalStateException e) {
+                } catch (IOException e) {
                     Log.e(TAG, e.getMessage(), e);
                 }
             }
@@ -363,7 +407,7 @@ public class ZeroConf extends CordovaPlugin {
         public void unregister(String type, String domain, String name) {
 
             for (JmDNS publisher : publishers) {
-                ServiceInfo serviceInfo = publisher.getServiceInfo(type + domain, name);
+                ServiceInfo serviceInfo = publisher.getServiceInfo(type + domain, name, 5000);
                 if (serviceInfo != null) {
                     publisher.unregisterService(serviceInfo);
                 }
@@ -389,6 +433,8 @@ public class ZeroConf extends CordovaPlugin {
 
         public BrowserManager(List<InetAddress> addresses, String hostname) throws IOException {
 
+            lock.acquire();
+
             if (addresses == null || addresses.size() == 0) {
                 browsers.add(JmDNS.create(null, hostname));
             } else {
@@ -403,14 +449,7 @@ public class ZeroConf extends CordovaPlugin {
             callbacks.put(type + domain, callbackContext);
 
             for (JmDNS browser : browsers) {
-
                 browser.addServiceListener(type + domain, this);
-
-                ServiceInfo[] services = browser.list(type + domain);
-                for (ServiceInfo service : services) {
-                    sendCallback("added", service);
-                }
-
             }
 
         }
@@ -427,6 +466,8 @@ public class ZeroConf extends CordovaPlugin {
 
         private void close() throws IOException {
 
+            lock.release();
+
             callbacks.clear();
 
             for (JmDNS browser : browsers) {
@@ -439,7 +480,7 @@ public class ZeroConf extends CordovaPlugin {
         public void serviceResolved(ServiceEvent ev) {
             Log.d(TAG, "Resolved");
 
-            sendCallback("added", ev.getInfo());
+            sendCallback("resolved", ev.getInfo());
         }
 
         @Override
@@ -450,12 +491,10 @@ public class ZeroConf extends CordovaPlugin {
         }
 
         @Override
-        public void serviceAdded(ServiceEvent event) {
+        public void serviceAdded(ServiceEvent ev) {
             Log.d(TAG, "Added");
 
-            // force serviceResolved to be called again
-            JmDNS browser = (JmDNS) event.getSource();
-            browser.requestServiceInfo(event.getType(), event.getName(), 1);
+            sendCallback("added", ev.getInfo());
         }
 
         public void sendCallback(String action, ServiceInfo service) {
@@ -524,11 +563,17 @@ public class ZeroConf extends CordovaPlugin {
     }
 
     // http://stackoverflow.com/questions/21898456/get-android-wifi-net-hostname-from-code
-    public static String getHostName() throws NoSuchMethodException, SecurityException, IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException {
+    public static String getHostName(CordovaInterface cordova) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         Method getString = Build.class.getDeclaredMethod("getString", String.class);
         getString.setAccessible(true);
-        return getString.invoke(null, "net.hostname").toString();
+        String hostName = getString.invoke(null, "net.hostname").toString();
+        if (TextUtils.isEmpty(hostName)) {
+            // API 26+ :
+            // Querying the net.hostname system property produces a null result
+            String id = Settings.Secure.getString(cordova.getActivity().getContentResolver(), Settings.Secure.ANDROID_ID);
+            hostName = "android-" + id;
+        }
+        return hostName;
     }
 
 }
