@@ -1,5 +1,8 @@
-repositories {
-    jcenter()
+allprojects {
+    repositories {
+        jcenter()`
+        maven { url "https://jitpack.io" }
+    }
 }
 dependencies {
     implementation 'com.github.tripflex.RxDNSSD:dnssd:1.9.13'
