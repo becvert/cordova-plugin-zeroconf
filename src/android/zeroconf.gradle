@@ -2,5 +2,5 @@ repositories {
     jcenter()
 }
 dependencies {
-    implementation 'com.github.andriydruk:dnssd:0.9.13'
+    implementation 'com.github.tripflex.RxDNSSD:dnssd:1.9.13'
 }
