@@ -5,5 +5,5 @@ allprojects {
     }
 }
 dependencies {
-    implementation 'com.github.tripflex.RxDNSSD:dnssd:1.9.13'
+    implementation 'com.github.tripflex.RxDNSSD:dnssd:1.9.14'
 }
