@@ -1,4 +1,3 @@
-import Cordova
 import Foundation
 
 @objc(ZeroConf) public class ZeroConf : CDVPlugin  {
