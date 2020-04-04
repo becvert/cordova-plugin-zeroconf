@@ -395,10 +395,7 @@ import Foundation
 
         var txtRecord: [String: String] = [:]
         if let txtRecordData = netService.txtRecordData() {
-            let dict = NetService.dictionary(fromTXTRecord: txtRecordData)
-            for (key, data) in dict {
-                txtRecord[key] = String(data: data, encoding:String.Encoding.utf8)
-            }
+            txtRecord = dictionary(fromTXTRecord: txtRecordData)
         }
 
         var hostName:String = ""
@@ -436,4 +433,36 @@ import Foundation
         return nil
     }
 
+    fileprivate static func dictionary(fromTXTRecord txtData: Data) -> [String: String] {
+
+        var result = [String: String]()
+        var data = txtData
+
+        while !data.isEmpty {
+            // The first byte of each record is its length, so prefix that much data
+            let recordLength = Int(data.removeFirst())
+            guard data.count >= recordLength else { return [:] }
+            let recordData = data[..<(data.startIndex + recordLength)]
+            data = data.dropFirst(recordLength)
+
+            guard let record = String(bytes: recordData, encoding: .utf8) else { return [:] }
+            // The format of the entry is "key=value"
+            // (According to the reference implementation, = is optional if there is no value,
+            // and any equals signs after the first are part of the value.)
+            // `ommittingEmptySubsequences` is necessary otherwise an empty string will crash the next line
+            let keyValue = record.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            let key = String(keyValue[0])
+            // If there's no value, make the value the empty string
+            switch keyValue.count {
+            case 1:
+                result[key] = ""
+            case 2:
+                result[key] = String(keyValue[1])
+            default:
+                fatalError()
+            }
+        }
+
+        return result
+    }
 }
