@@ -1,3 +1,8 @@
+## [1.4.2] - 2020-04-04
+
+- Added caret semver to `cordova-plugin-add-swift-support` #80
+- [iOS] Fixed handling of invalid TXTRecord keyValues that crash #86
+
 ## [1.4.1] - 2019-11-07
 
 - [iOS] updating cordova-plugin-add-swift-support dependency to 2.0.2
