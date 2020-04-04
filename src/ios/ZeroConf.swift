@@ -459,7 +459,7 @@ import Foundation
             case 2:
                 result[key] = String(keyValue[1])
             default:
-                fatalError()
+                fatalError("ZeroConf: Malformed or unexpected TXTRecord keyValue")
             }
         }
 
