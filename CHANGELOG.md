@@ -1,3 +1,7 @@
+## [1.4.1] - 2019-11-07
+
+- [iOS] updating cordova-plugin-add-swift-support dependency to 2.0.2
+
 ## [1.4.0] - 2019-04-02
 
 - [Android] updating JmDNS dependency to 3.5.5

@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-zeroconf"
-    version="1.4.0">
+    version="1.4.1">
 
     <name>ZeroConf</name>
     <description>ZeroConf plugin for Cordova/Phonegap</description>
@@ -42,7 +42,6 @@
         <header-file src="src/ios/Hostname.h"/>
         <source-file src="src/ios/Hostname.m"/>
     </platform>
-    
-    <dependency id="cordova-plugin-add-swift-support" version="^2.0.1"/>
 
+    <dependency id="cordova-plugin-add-swift-support" version="^2.0.2"/>
 </plugin>
