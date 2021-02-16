@@ -567,8 +567,8 @@ public class ZeroConf extends CordovaPlugin {
         Method getString = Build.class.getDeclaredMethod("getString", String.class);
         getString.setAccessible(true);
         String hostName = getString.invoke(null, "net.hostname").toString();
-        if (TextUtils.isEmpty(hostName)) {
-            // API 26+ :
+        if (TextUtils.isEmpty(hostName) || hostName == "unknown") {    
+	    // API 26+ :
             // Querying the net.hostname system property produces a null result
             String id = Settings.Secure.getString(cordova.getActivity().getContentResolver(), Settings.Secure.ANDROID_ID);
             hostName = "android-" + id;
