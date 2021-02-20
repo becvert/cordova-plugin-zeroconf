@@ -567,7 +567,15 @@ public class ZeroConf extends CordovaPlugin {
         Method getString = Build.class.getDeclaredMethod("getString", String.class);
         getString.setAccessible(true);
         String hostName = getString.invoke(null, "net.hostname").toString();
-        if (TextUtils.isEmpty(hostName) || hostName == "unknown") {    
+
+        // Fix for Bug https://github.com/becvert/cordova-plugin-zeroconf/issues/93
+        // "unknown" seams a possible result since Android Oreo (8).
+        // https://android-developers.googleblog.com/2017/04/changes-to-device-identifiers-in.html 
+        // Observed with: Android 8 on a Samsung S9, 
+        // Android 10 an 11 on a Samsung S10,
+        // Android 11 on AVD Emulator  
+
+        if (TextUtils.isEmpty(hostName) || hostName == "unknown") {
 	    // API 26+ :
             // Querying the net.hostname system property produces a null result
             String id = Settings.Secure.getString(cordova.getActivity().getContentResolver(), Settings.Secure.ANDROID_ID);
