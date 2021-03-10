@@ -1,31 +1,72 @@
 # Cordova ZeroConf Plugin
 
-This plugin allows you to browse and publish ZeroConf/Bonjour/mDNS services from applications developed using PhoneGap/Cordova 3.0 or newer.
+This plugin allows you to browse and publish ZeroConf/Bonjour/mDNS services from applications developed using PhoneGap/Cordova 3.0 or newer and Ionic's Capacitor.
 
 This is not a background service. When the cordova view is destroyed/terminated, publish and watch operations are stopped.
 
 [CHANGELOG](https://github.com/becvert/cordova-plugin-zeroconf/blob/master/CHANGELOG.md)
 
-## Installation ##
+## Installation
 
+### Cordova
 In your application project directory:
 
 ```bash
 cordova plugin add cordova-plugin-zeroconf
 ```
 
-## Usage ##
+### Capacitor (with typescript)
+```bash
+npm install cordova-plugin-zeroconf @ionic-native/zeroconf @ionic-native/core
+npx cap sync
+```
 
+## Usage
+
+### Cordova
 ```javascript
 var zeroconf = cordova.plugins.zeroconf;
 ```
 
-For Android, you may want set the following options to speed discovery up:
+### Capacitor (with typescript)
+You don't need to import it from the capacitor `Plugins` object, you can just directly import and use it. If you use the `@ionic-native/zeroconf` package you'll get typescript support.
+```javascript
+import { Zeroconf } from "@ionic-native/zeroconf";
+
+Zeroconf.watch("_http._tcp.", "local.").subscribe(result => {
+  console.log("Zeroconf Service Changed:");
+  console.log(result);
+});
+```
+
+## OS Specific Instructions
+### Android
+For Android, you may want to set the following options to speed discovery up:
  
 ```javascript 
 zeroconf.registerAddressFamily = 'ipv4'; // or 'ipv6' ('any' by default)
 zeroconf.watchAddressFamily = 'ipv4'; // or 'ipv6' ('any' by default)
 ```
+
+### iOS
+On iOS, you need to configure a couple of things before you can use this plugin. Specifically, you need to add the following to your `Info.plist` file. Please note that if you misconfigure your `Info.plist` file, you will receive an unhelpful `null` error when trying to watch/publish.
+
+#### As Property List (Default View)
+`Privacy - Local Network Usage Description` - Enter a description that's shown to the user in the network permission prompt.
+`Bonjour services` - Add an item for each zeroconf service you wish to expose or search for, in this format: `_NameOfService._tcp.`.
+
+#### As XML
+```
+<key>NSBonjourServices</key>
+<array>
+ <string>_NameOfService._tcp.</string>
+</array>
+
+<key>NSLocalNetworkUsageDescription</key>
+<string>To find your jCharge server.</string>
+```
+
+## API
 
 #### `getHostname(success, failure)`
 Returns this device's hostname.
