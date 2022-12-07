@@ -36,6 +36,7 @@
             <feature name="ZeroConf">
                 <param name="ios-package" value="ZeroConf"/>
             </feature>
+            <preference name="SwiftVersion" value="4.0" />
         </config-file>
         <header-file src="src/ios/ZeroConf-Bridging-Header.h"  type="BridgingHeader" />
         <source-file src="src/ios/ZeroConf.swift"/>
